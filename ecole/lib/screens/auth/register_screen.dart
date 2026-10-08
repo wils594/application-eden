@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../core/routes/app_routes.dart';
+import '../../services/auth_service.dart';
+
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -19,6 +22,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _isLoading = false;
 
   static const Color _primary = Color(0xFF2563EB);
   static const Color _primaryDark = Color(0xFF1E40AF);
@@ -36,17 +40,59 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  void _register() {
-    if (_formKey.currentState!.validate()) {
+  Future<void> _register() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final response = await AuthService.register(
+        name: _nameController.text.trim(),
+        phone: _phoneController.text.trim(),
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        passwordConfirmation: _confirmPasswordController.text,
+      );
+
+      if (!mounted) return;
+
+      debugPrint('Inscription réussie : ${response['user']}');
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Inscription en préparation...'),
+          content: Text('Compte créé avec succès.'),
+          backgroundColor: Colors.green,
         ),
       );
+
+      Navigator.pushReplacementNamed(
+        context,
+        AppRoutes.login,
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            e.toString().replaceFirst('Exception: ', ''),
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
-  /// Builder réutilisable pour un SVG en prefixIcon
   Widget _svgPrefix(String asset) {
     return Padding(
       padding: const EdgeInsets.all(14),
@@ -62,15 +108,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  /// Builder réutilisable pour l'icône œil (afficher/masquer)
   Widget _eyeIcon({
     required bool obscure,
     required VoidCallback onTap,
   }) {
     return IconButton(
-      onPressed: onTap,
+      onPressed: _isLoading ? null : onTap,
       icon: SvgPicture.asset(
-        obscure ? 'assets/icons/eye.svg' : 'assets/icons/eye_off.svg',
+        obscure
+            ? 'assets/icons/eye.svg'
+            : 'assets/icons/eye_off.svg',
         width: 20,
         height: 20,
         colorFilter: const ColorFilter.mode(
@@ -81,7 +128,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  /// Décoration commune des champs
   InputDecoration _fieldDecoration({
     required String label,
     required String iconAsset,
@@ -89,7 +135,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }) {
     return InputDecoration(
       labelText: label,
-      labelStyle: const TextStyle(color: _textMuted),
+      labelStyle: const TextStyle(
+        color: _textMuted,
+      ),
       filled: true,
       fillColor: _inputFill,
       prefixIcon: _svgPrefix(iconAsset),
@@ -174,9 +222,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 const SizedBox(height: 18),
 
-                // Nom complet
                 TextFormField(
                   controller: _nameController,
+                  enabled: !_isLoading,
                   textCapitalization: TextCapitalization.words,
                   style: const TextStyle(
                     color: _textDark,
@@ -190,15 +238,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     if (value == null || value.trim().isEmpty) {
                       return 'Veuillez saisir votre nom';
                     }
+
                     return null;
                   },
                 ),
 
                 const SizedBox(height: 16),
 
-                // Téléphone
                 TextFormField(
                   controller: _phoneController,
+                  enabled: !_isLoading,
                   keyboardType: TextInputType.phone,
                   style: const TextStyle(
                     color: _textDark,
@@ -212,15 +261,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     if (value == null || value.trim().isEmpty) {
                       return 'Veuillez saisir votre numéro';
                     }
+
                     return null;
                   },
                 ),
 
                 const SizedBox(height: 16),
 
-                // Email
                 TextFormField(
                   controller: _emailController,
+                  enabled: !_isLoading,
                   keyboardType: TextInputType.emailAddress,
                   style: const TextStyle(
                     color: _textDark,
@@ -256,9 +306,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 const SizedBox(height: 18),
 
-                // Mot de passe
                 TextFormField(
                   controller: _passwordController,
+                  enabled: !_isLoading,
                   obscureText: _obscurePassword,
                   style: const TextStyle(
                     color: _textDark,
@@ -271,7 +321,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       obscure: _obscurePassword,
                       onTap: () {
                         setState(() {
-                          _obscurePassword = !_obscurePassword;
+                          _obscurePassword =
+                              !_obscurePassword;
                         });
                       },
                     ),
@@ -281,8 +332,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       return 'Veuillez saisir un mot de passe';
                     }
 
-                    if (value.length < 6) {
-                      return 'Minimum 6 caractères';
+                    if (value.length < 8) {
+                      return 'Minimum 8 caractères';
                     }
 
                     return null;
@@ -291,9 +342,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 const SizedBox(height: 16),
 
-                // Confirmation mot de passe
                 TextFormField(
                   controller: _confirmPasswordController,
+                  enabled: !_isLoading,
                   obscureText: _obscureConfirmPassword,
                   style: const TextStyle(
                     color: _textDark,
@@ -327,12 +378,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 const SizedBox(height: 28),
 
-                // Bouton d'inscription
                 Container(
                   height: 52,
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [_primary, _primaryDark],
+                      colors: [
+                        _primary,
+                        _primaryDark,
+                      ],
                       begin: Alignment.centerLeft,
                       end: Alignment.centerRight,
                     ),
@@ -349,17 +402,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     color: Colors.transparent,
                     child: InkWell(
                       borderRadius: BorderRadius.circular(12),
-                      onTap: _register,
-                      child: const Center(
-                        child: Text(
-                          'Créer mon compte',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            letterSpacing: 0.3,
-                          ),
-                        ),
+                      onTap: _isLoading ? null : _register,
+                      child: Center(
+                        child: _isLoading
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Text(
+                                'Créer mon compte',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                  letterSpacing: 0.3,
+                                ),
+                              ),
                       ),
                     ),
                   ),
@@ -377,9 +439,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ),
                     TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
+                      onPressed: _isLoading
+                          ? null
+                          : () {
+                              Navigator.pop(context);
+                            },
                       child: const Text(
                         'Se connecter',
                         style: TextStyle(
