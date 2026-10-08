@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 #[Fillable([
     'name',
@@ -37,4 +38,13 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+  public function students(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+{
+    return $this->belongsToMany(
+        Student::class,
+        'parent_student',
+        'user_id',
+        'student_id'
+    )->withTimestamps();
+}
 }
