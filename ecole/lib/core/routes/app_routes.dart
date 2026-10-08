@@ -3,6 +3,10 @@ import 'package:flutter/material.dart';
 import '../../screens/auth/login_screen.dart';
 import '../../screens/auth/register_screen.dart';
 import '../../screens/home/home_screen.dart';
+import '../../screens/enfants/enfants_screen.dart';
+import '../../screens/bulletins/bulletins_screen.dart';
+import '../../screens/annonces/annonces_screen.dart';
+
 
 class AppRoutes {
   static const String login = '/login';
@@ -31,6 +35,21 @@ class AppRoutes {
         return MaterialPageRoute(
           builder: (_) => const HomeScreen(),
         );
+
+        case enfants:
+  return MaterialPageRoute(
+    builder: (_) => const EnfantsScreen(),
+  );
+
+  case bulletins:
+  return MaterialPageRoute(
+    builder: (_) => const BulletinsScreen(),
+  );
+
+  case annonces:
+  return MaterialPageRoute(
+    builder: (_) => const AnnoncesScreen(),
+  );
 
       default:
         return MaterialPageRoute(

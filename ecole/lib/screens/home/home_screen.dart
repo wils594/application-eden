@@ -621,11 +621,31 @@ class _HomeScreenState extends State<HomeScreen> {
                     width: itemWidth,
                     height: 54,
                     child: InkWell(
-                      onTap: () {
-                        setState(() {
-                          _selectedIndex = index;
-                        });
-                      },
+                      
+
+
+onTap: () {
+  if (index == 1) {
+    Navigator.pushNamed(context, '/enfants');
+    return;
+  }
+
+  if (index == 2) {
+    Navigator.pushNamed(context, '/bulletins');
+    return;
+  }
+
+  if (index == 3) {
+    Navigator.pushNamed(context, '/annonces');
+    return;
+  }
+
+  setState(() {
+    _selectedIndex = index;
+  });
+},
+
+
                       borderRadius: BorderRadius.circular(12),
                       child: Container(
                         margin: const EdgeInsets.symmetric(horizontal: 3),
