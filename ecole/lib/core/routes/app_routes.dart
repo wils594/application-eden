@@ -6,6 +6,8 @@ import '../../screens/home/home_screen.dart';
 import '../../screens/enfants/enfants_screen.dart';
 import '../../screens/bulletins/bulletins_screen.dart';
 import '../../screens/annonces/annonces_screen.dart';
+import '../../screens/chat/chat_screen.dart';
+import '../../screens/profil/profile_screen.dart';
 
 
 class AppRoutes {
@@ -17,7 +19,7 @@ class AppRoutes {
   static const String bulletins = '/bulletins';
   static const String annonces = '/annonces';
   static const String chat = '/chat';
-  static const String profil = '/profil';
+  static const String profile = '/profile';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -51,6 +53,15 @@ class AppRoutes {
     builder: (_) => const AnnoncesScreen(),
   );
 
+case chat:
+  return MaterialPageRoute(
+    builder: (_) => const ChatScreen(),
+  );
+
+case profile:
+  return MaterialPageRoute(
+    builder: (_) => const ProfileScreen(),
+  );
       default:
         return MaterialPageRoute(
           builder: (_) => const Scaffold(

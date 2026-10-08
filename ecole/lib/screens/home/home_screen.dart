@@ -624,6 +624,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       
 
 
+
 onTap: () {
   if (index == 1) {
     Navigator.pushNamed(context, '/enfants');
@@ -640,10 +641,21 @@ onTap: () {
     return;
   }
 
+  if (index == 4) {
+    Navigator.pushNamed(context, '/chat');
+    return;
+  }
+
+  if (index == 5) {
+    Navigator.pushNamed(context, '/profile');
+    return;
+  }
+
   setState(() {
     _selectedIndex = index;
   });
 },
+
 
 
                       borderRadius: BorderRadius.circular(12),
