@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/constants/app_constants.dart';
 
@@ -16,6 +17,41 @@ class ApiService {
         'Content-Type': 'application/json',
       },
       body: jsonEncode(data),
+    );
+
+    final responseData = jsonDecode(response.body);
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      final result = Map<String, dynamic>.from(responseData);
+
+      // Sauvegarder le token après la connexion ou l'inscription.
+      if (result['token'] != null) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('auth_token', result['token'].toString());
+      }
+
+      return result;
+    }
+
+    throw Exception(
+      responseData['message'] ?? 'Une erreur est survenue.',
+    );
+  }
+
+  static Future<Map<String, dynamic>> get(String endpoint) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    if (token == null || token.isEmpty) {
+      throw Exception('Vous devez vous connecter à nouveau.');
+    }
+
+    final response = await http.get(
+      Uri.parse('${AppConstants.apiBaseUrl}$endpoint'),
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
     );
 
     final responseData = jsonDecode(response.body);

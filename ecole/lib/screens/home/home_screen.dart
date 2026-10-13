@@ -625,36 +625,41 @@ class _HomeScreenState extends State<HomeScreen> {
 
 
 
+                    
 onTap: () {
-  if (index == 1) {
-    Navigator.pushNamed(context, '/enfants');
-    return;
-  }
+  switch (index) {
+    case 0:
+      setState(() {
+        _selectedIndex = 0;
+      });
+      break;
 
-  if (index == 2) {
-    Navigator.pushNamed(context, '/bulletins');
-    return;
-  }
+    case 1:
+      Navigator.pushNamed(context, '/enfants');
+      break;
 
-  if (index == 3) {
-    Navigator.pushNamed(context, '/annonces');
-    return;
-  }
+    case 2:
+      Navigator.pushNamed(context, '/bulletins');
+      break;
 
-  if (index == 4) {
-    Navigator.pushNamed(context, '/chat');
-    return;
-  }
+    case 3:
+      Navigator.pushNamed(context, '/annonces');
+      break;
 
-  if (index == 5) {
-    Navigator.pushNamed(context, '/profile');
-    return;
-  }
+    case 4:
+      Navigator.pushNamed(context, '/chat');
+      break;
 
-  setState(() {
-    _selectedIndex = index;
-  });
+    case 5:
+      Navigator.pushNamed(context, '/profil');
+      break;
+
+    case 6:
+      Navigator.pushNamed(context, '/reglages');
+      break;
+  }
 },
+
 
 
 

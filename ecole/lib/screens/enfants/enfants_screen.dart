@@ -1,8 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../../services/api_service.dart';
 
-class EnfantsScreen extends StatelessWidget {
+class EnfantsScreen extends StatefulWidget {
   const EnfantsScreen({super.key});
+
+  @override
+  State<EnfantsScreen> createState() => _EnfantsScreenState();
+}
+
+class _EnfantsScreenState extends State<EnfantsScreen> {
+  List<Map<String, dynamic>> enfants = [];
+  bool isLoading = true;
+  String? erreur;
 
   static const Color primaryColor = Color(0xFF2563EB);
   static const Color primaryDark = Color(0xFF1D4ED8);
@@ -11,6 +21,46 @@ class EnfantsScreen extends StatelessWidget {
   static const Color backgroundColor = Color(0xFFF7F9FC);
   static const Color border = Color(0xFFE5E7EB);
   static const Color primarySoft = Color(0xFFEFF6FF);
+
+  /// Palette d'avatars (une couleur différente par enfant)
+  static const List<List<Color>> _avatarPalette = [
+    [Color(0xFF2563EB), Color(0xFF1D4ED8)], // Bleu
+    [Color(0xFF7C3AED), Color(0xFF5B21B6)], // Violet
+    [Color(0xFFEA580C), Color(0xFFC2410C)], // Orange
+    [Color(0xFF16A34A), Color(0xFF15803D)], // Vert
+    [Color(0xFFDB2777), Color(0xFFBE185D)], // Rose
+    [Color(0xFF0891B2), Color(0xFF0E7490)], // Cyan
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    chargerEnfants();
+  }
+
+  Future<void> chargerEnfants() async {
+    try {
+      final response = await ApiService.get('/enfants');
+      final donnees = response['data'] as List<dynamic>? ?? [];
+
+      if (!mounted) return;
+
+      setState(() {
+        enfants = donnees
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+        isLoading = false;
+        erreur = null;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        erreur = e.toString().replaceFirst('Exception: ', '');
+        isLoading = false;
+      });
+    }
+  }
 
   /// Helper : SVG teinté
   Widget _svg({
@@ -24,6 +74,28 @@ class EnfantsScreen extends StatelessWidget {
       height: size,
       colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
     );
+  }
+
+  /// Détecte le genre de l'enfant à partir des champs renvoyés par l'API.
+  /// Retourne 'fille' ou 'garcon' (par défaut).
+  String _detecterGenre(Map<String, dynamic> enfant) {
+    final valeur = (
+      enfant['gender'] ??
+      enfant['sexe'] ??
+      enfant['sex'] ??
+      enfant['genre'] ??
+      ''
+    ).toString().toLowerCase().trim();
+
+    if (valeur == 'f' ||
+        valeur == 'female' ||
+        valeur == 'fille' ||
+        valeur == 'femme' ||
+        valeur.startsWith('f')) {
+      return 'fille';
+    }
+
+    return 'garcon';
   }
 
   @override
@@ -131,7 +203,7 @@ class EnfantsScreen extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              _buildEmptyState(),
+              _buildChildrenList(context),
             ],
           ),
         ),
@@ -160,7 +232,6 @@ class EnfantsScreen extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Icône dans un cercle translucide
           Container(
             width: 58,
             height: 58,
@@ -237,7 +308,6 @@ class EnfantsScreen extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Illustration : deux cercles concentriques + SVG
           Container(
             width: 96,
             height: 96,
@@ -297,7 +367,6 @@ class EnfantsScreen extends StatelessWidget {
 
           const SizedBox(height: 20),
 
-          // Badge info avec SVG
           Container(
             padding: const EdgeInsets.symmetric(
               horizontal: 14,
@@ -330,6 +399,264 @@ class EnfantsScreen extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChildrenList(BuildContext context) {
+    // ── Chargement ──
+    if (isLoading) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(30),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    // ── Erreur ──
+    if (erreur != null) {
+      return Center(
+        child: Column(
+          children: [
+            Text(
+              erreur!,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.red),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  isLoading = true;
+                  erreur = null;
+                });
+                chargerEnfants();
+              },
+              child: const Text('Réessayer'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // ── Aucun enfant ──
+    if (enfants.isEmpty) {
+      return _buildEmptyState();
+    }
+
+    // ── Liste des enfants ──
+    return Column(
+      children: List.generate(enfants.length, (index) {
+        final enfant = enfants[index];
+        final prenom = enfant['first_name']?.toString() ?? '';
+        final nom = enfant['last_name']?.toString() ?? '';
+        final nomComplet = '$prenom $nom'.trim();
+        final classe = enfant['class_name']?.toString() ?? 'Non renseignée';
+        final matricule = enfant['matricule']?.toString() ?? 'Non renseigné';
+
+        // Détection du genre (fallback : garçon)
+        final genre = _detecterGenre(enfant);
+
+        // Couleur d'avatar cyclique
+        final avatarColors = _avatarPalette[index % _avatarPalette.length];
+
+        return _buildChildCard(
+          context: context,
+          nomComplet: nomComplet,
+          classe: classe,
+          matricule: matricule,
+          avatarColors: avatarColors,
+          avatarAsset: genre == 'fille'
+              ? 'assets/icons/girl.svg'
+              : 'assets/icons/boy.svg',
+        );
+      }),
+    );
+  }
+
+  /// Card enfant (design épuré, sans traits bizarres)
+  Widget _buildChildCard({
+    required BuildContext context,
+    required String nomComplet,
+    required String classe,
+    required String matricule,
+    required List<Color> avatarColors,
+    required String avatarAsset,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: border),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // ── Corps de la card ──
+          Padding(
+            padding: const EdgeInsets.all(18),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Avatar photo SVG (garçon ou fille)
+                Container(
+                  width: 62,
+                  height: 62,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: avatarColors,
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: avatarColors[0].withOpacity(0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.all(14),
+                  child: SvgPicture.asset(
+                    avatarAsset,
+                    colorFilter: const ColorFilter.mode(
+                      Colors.white,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(width: 16),
+
+                // Infos enfant
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        nomComplet.isEmpty
+                            ? 'Nom non renseigné'
+                            : nomComplet,
+                        style: const TextStyle(
+                          color: textDark,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: -0.2,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          // Badge classe
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 9,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: primarySoft,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              classe,
+                              style: const TextStyle(
+                                color: primaryColor,
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      // Matricule
+                      Text(
+                        'Matricule : $matricule',
+                        style: const TextStyle(
+                          color: textMuted,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // ── Pied de card : bouton bulletins ──
+          Container(
+            decoration: const BoxDecoration(
+              color: Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(20),
+                bottomRight: Radius.circular(20),
+              ),
+            ),
+            padding: const EdgeInsets.all(12),
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(12),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'La consultation des bulletins sera ajoutée ensuite.',
+                      ),
+                    ),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: primaryColor,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: primaryColor.withOpacity(0.25),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _svg(
+                        asset: 'assets/icons/file-text.svg',
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 10),
+                      const Text(
+                        'Consulter les bulletins',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
         ],
