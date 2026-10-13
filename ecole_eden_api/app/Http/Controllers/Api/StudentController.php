@@ -23,6 +23,7 @@ class StudentController extends Controller
                 'students.date_of_birth',
                 'students.class_name',
                 'students.school_year',
+                'students.gender',
             ]);
 
         return response()->json([
