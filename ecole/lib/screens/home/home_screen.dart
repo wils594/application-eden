@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -13,7 +15,8 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen>
+    with TickerProviderStateMixin {
   int _selectedIndex = 0;
 
   // Palette
@@ -27,37 +30,15 @@ class _HomeScreenState extends State<HomeScreen> {
   static const Color primarySoft = Color(0xFFEFF6FF);
 
   final List<_MenuItem> _menuItems = const [
-    _MenuItem(
-      title: 'Accueil',
-      iconAsset: 'assets/icons/home.svg',
-    ),
-    _MenuItem(
-      title: 'Enfants',
-      iconAsset: 'assets/icons/family.svg',
-    ),
-    _MenuItem(
-      title: 'Bulletins',
-      iconAsset: 'assets/icons/document.svg',
-    ),
-    _MenuItem(
-      title: 'Annonces',
-      iconAsset: 'assets/icons/megaphone.svg',
-    ),
-    _MenuItem(
-      title: 'Messages',
-      iconAsset: 'assets/icons/chat.svg',
-    ),
-    _MenuItem(
-      title: 'Profil',
-      iconAsset: 'assets/icons/user.svg',
-    ),
-    _MenuItem(
-      title: 'Réglages',
-      iconAsset: 'assets/icons/settings.svg',
-    ),
+    _MenuItem(title: 'Accueil', iconAsset: 'assets/icons/home.svg'),
+    _MenuItem(title: 'Enfants', iconAsset: 'assets/icons/family.svg'),
+    _MenuItem(title: 'Bulletins', iconAsset: 'assets/icons/document.svg'),
+    _MenuItem(title: 'Annonces', iconAsset: 'assets/icons/megaphone.svg'),
+    _MenuItem(title: 'Messages', iconAsset: 'assets/icons/chat.svg'),
+    _MenuItem(title: 'Profil', iconAsset: 'assets/icons/user.svg'),
+    _MenuItem(title: 'Réglages', iconAsset: 'assets/icons/settings.svg'),
   ];
 
-  /// Helper SVG teinté
   Widget _svg(String asset, {Color? color, double size = 22}) {
     return SvgPicture.asset(
       asset,
@@ -81,36 +62,12 @@ class _HomeScreenState extends State<HomeScreen> {
         scrolledUnderElevation: 0,
         automaticallyImplyLeading: false,
         titleSpacing: 20,
-
         title: Row(
           children: [
-            // Logo école dans un carré dégradé
-            Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [primary, primaryDark],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: primary.withOpacity(0.25),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              padding: const EdgeInsets.all(10),
-              child: SvgPicture.asset(
-                'assets/icons/school.svg',
-                colorFilter: const ColorFilter.mode(
-                  Colors.white,
-                  BlendMode.srcIn,
-                ),
-              ),
+            // 🌟 Logo avec glow pulsant
+            _GlowingLogo(
+              svgBuilder: (color, size) =>
+                  _svg('assets/icons/school.svg', color: color, size: size),
             ),
 
             const SizedBox(width: 12),
@@ -140,43 +97,38 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
-
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 12),
-            child: Stack(
-              children: [
-                IconButton(
-                  onPressed: _showNotifications,
-                  icon: _svg(
-                    'assets/icons/bell.svg',
-                    color: textDark,
-                    size: 24,
-                  ),
-                ),
-                Positioned(
-                  right: 8,
-                  top: 7,
-                  child: Container(
-                    width: 9,
-                    height: 9,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEF4444),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.white,
-                        width: 1.5,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+            child: _AnimatedBellButton(
+              svgBuilder: (color, size) =>
+                  _svg('assets/icons/bell.svg', color: color, size: size),
+              onTap: _showNotifications,
             ),
           ),
         ],
       ),
 
-      body: _buildCurrentPage(),
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 400),
+        switchInCurve: Curves.easeOutCubic,
+        switchOutCurve: Curves.easeInCubic,
+        transitionBuilder: (child, animation) {
+          final offset = Tween<Offset>(
+            begin: const Offset(0, 0.08),
+            end: Offset.zero,
+          ).animate(animation);
+
+          return FadeTransition(
+            opacity: animation,
+            child: SlideTransition(position: offset, child: child),
+          );
+        },
+        child: KeyedSubtree(
+          key: ValueKey(_selectedIndex),
+          child: _buildCurrentPage(),
+        ),
+      ),
 
       bottomNavigationBar: _buildBottomMenu(),
     );
@@ -200,172 +152,128 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Salutation ──
-            Text(
-              'Bonjour, ${widget.parentName} !',
-              style: const TextStyle(
-                color: textDark,
-                fontSize: 27,
-                fontWeight: FontWeight.bold,
-                letterSpacing: -0.5,
+            _FadeSlideIn(
+              delay: 0,
+              child: Text(
+                'Bonjour, ${widget.parentName} !',
+                style: const TextStyle(
+                  color: textDark,
+                  fontSize: 27,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: -0.5,
+                ),
               ),
             ),
 
             const SizedBox(height: 8),
 
-            const Text(
-              'Ravi de vous revoir dans votre espace parent.',
-              style: TextStyle(
-                color: textBody,
-                fontSize: 16,
-                height: 1.4,
-                fontWeight: FontWeight.w500,
+            _FadeSlideIn(
+              delay: 80,
+              child: const Text(
+                'Ravi de vous revoir dans votre espace parent.',
+                style: TextStyle(
+                  color: textBody,
+                  fontSize: 16,
+                  height: 1.4,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
 
             const SizedBox(height: 4),
 
-            const Text(
-              'Nous sommes là pour vous accompagner et vous permettre de suivre facilement la vie scolaire de vos enfants.',
-              style: TextStyle(
-                color: textMuted,
-                fontSize: 14,
-                height: 1.5,
+            _FadeSlideIn(
+              delay: 160,
+              child: const Text(
+                'Nous sommes là pour vous accompagner et vous permettre de suivre facilement la vie scolaire de vos enfants.',
+                style: TextStyle(
+                  color: textMuted,
+                  fontSize: 14,
+                  height: 1.5,
+                ),
               ),
             ),
 
             const SizedBox(height: 25),
 
-            // ── Carte de bienvenue ──
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(22),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [primary, primaryDark],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: primary.withOpacity(0.25),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 58,
-                    height: 58,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.18),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.white.withOpacity(0.25),
-                        width: 1.5,
-                      ),
-                    ),
-                    padding: const EdgeInsets.all(15),
-                    child: SvgPicture.asset(
-                      'assets/icons/school.svg',
-                      colorFilter: const ColorFilter.mode(
-                        Colors.white,
-                        BlendMode.srcIn,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(width: 16),
-
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Votre espace scolaire',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: -0.3,
-                          ),
-                        ),
-
-                        SizedBox(height: 6),
-
-                        Text(
-                          'Retrouvez facilement les informations importantes concernant vos enfants.',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 13,
-                            height: 1.4,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+            // 🌈 Carte bienvenue animée (dégradé + shimmer + particules)
+            _FadeSlideIn(
+              delay: 240,
+              child: _AnimatedWelcomeCard(
+                svgBuilder: (color, size) =>
+                    _svg('assets/icons/school.svg', color: color, size: size),
               ),
             ),
 
             const SizedBox(height: 28),
 
-            // ── Section suivi ──
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Votre suivi scolaire',
-                  style: TextStyle(
-                    color: textDark,
-                    fontSize: 19,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: -0.3,
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: primarySoft,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Text(
-                    '4',
+            // Section avec compteur animé
+            _FadeSlideIn(
+              delay: 320,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Votre suivi scolaire',
                     style: TextStyle(
-                      color: primary,
-                      fontSize: 12,
+                      color: textDark,
+                      fontSize: 19,
                       fontWeight: FontWeight.bold,
+                      letterSpacing: -0.3,
                     ),
                   ),
-                ),
-              ],
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: primarySoft,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const _AnimatedCounter(
+                      value: 4,
+                      style: TextStyle(
+                        color: primary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
 
             const SizedBox(height: 15),
 
+            // 🎨 Cartes info avec hover magnétique + ripple
             Row(
               children: [
                 Expanded(
-                  child: _buildInfoCard(
-                    iconAsset: 'assets/icons/family.svg',
-                    title: 'Mes enfants',
-                    subtitle: 'Suivre leur scolarité',
-                    color: primary,
+                  child: _FadeSlideIn(
+                    delay: 400,
+                    child: _HoverableInfoCard(
+                      iconAsset: 'assets/icons/family.svg',
+                      title: 'Mes enfants',
+                      subtitle: 'Suivre leur scolarité',
+                      accentColor: const Color(0xFF2563EB),
+                      svgBuilder: _svg,
+                      onTap: () {},
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: _buildInfoCard(
-                    iconAsset: 'assets/icons/document.svg',
-                    title: 'Bulletins',
-                    subtitle: 'Consulter les résultats',
-                    color: Colors.orange,
+                  child: _FadeSlideIn(
+                    delay: 460,
+                    child: _HoverableInfoCard(
+                      iconAsset: 'assets/icons/document.svg',
+                      title: 'Bulletins',
+                      subtitle: 'Consulter les résultats',
+                      accentColor: const Color(0xFFF59E0B),
+                      svgBuilder: _svg,
+                      onTap: () {},
+                    ),
                   ),
                 ),
               ],
@@ -376,20 +284,30 @@ class _HomeScreenState extends State<HomeScreen> {
             Row(
               children: [
                 Expanded(
-                  child: _buildInfoCard(
-                    iconAsset: 'assets/icons/megaphone.svg',
-                    title: 'Annonces',
-                    subtitle: 'Actualités de l’école',
-                    color: Colors.purple,
+                  child: _FadeSlideIn(
+                    delay: 520,
+                    child: _HoverableInfoCard(
+                      iconAsset: 'assets/icons/megaphone.svg',
+                      title: 'Annonces',
+                      subtitle: 'Actualités de l’école',
+                      accentColor: const Color(0xFF8B5CF6),
+                      svgBuilder: _svg,
+                      onTap: () {},
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: _buildInfoCard(
-                    iconAsset: 'assets/icons/chat.svg',
-                    title: 'Messages',
-                    subtitle: 'Échanger avec l’école',
-                    color: Colors.green,
+                  child: _FadeSlideIn(
+                    delay: 580,
+                    child: _HoverableInfoCard(
+                      iconAsset: 'assets/icons/chat.svg',
+                      title: 'Messages',
+                      subtitle: 'Échanger avec l’école',
+                      accentColor: const Color(0xFF10B981),
+                      svgBuilder: _svg,
+                      onTap: () {},
+                    ),
                   ),
                 ),
               ],
@@ -397,53 +315,68 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SizedBox(height: 30),
 
-            // ── Bandeau info ──
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: Colors.white,
+            // 🔮 Bandeau info glassmorphism
+            _FadeSlideIn(
+              delay: 640,
+              child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: border),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 42,
-                    height: 42,
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(18),
                     decoration: BoxDecoration(
-                      color: primarySoft,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.all(10),
-                    child: _svg(
-                      'assets/icons/info.svg',
-                      color: primary,
-                      size: 22,
-                    ),
-                  ),
-
-                  const SizedBox(width: 13),
-
-                  const Expanded(
-                    child: Text(
-                      'Les informations importantes de l’école apparaîtront ici.',
-                      style: TextStyle(
-                        color: textBody,
-                        fontSize: 13,
-                        height: 1.4,
-                        fontWeight: FontWeight.w500,
+                      color: Colors.white.withOpacity(0.7),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.8),
+                        width: 1.5,
                       ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: primary.withOpacity(0.08),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 42,
+                          height: 42,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                primary.withOpacity(0.15),
+                                primary.withOpacity(0.08),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.all(10),
+                          child: _svg(
+                            'assets/icons/info.svg',
+                            color: primary,
+                            size: 22,
+                          ),
+                        ),
+                        const SizedBox(width: 13),
+                        const Expanded(
+                          child: Text(
+                            'Les informations importantes de l’école apparaîtront ici.',
+                            style: TextStyle(
+                              color: textBody,
+                              fontSize: 13,
+                              height: 1.4,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
+                ),
               ),
             ),
           ],
@@ -452,108 +385,45 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildInfoCard({
-    required String iconAsset,
-    required String title,
-    required String subtitle,
-    required Color color,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () {},
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: border),
-            boxShadow: [
-              BoxShadow(
-                color: color.withOpacity(0.08),
-                blurRadius: 12,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: const EdgeInsets.all(11),
-                child: SvgPicture.asset(
-                  iconAsset,
-                  colorFilter: ColorFilter.mode(
-                    color,
-                    BlendMode.srcIn,
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 13),
-
-              Text(
-                title,
-                style: const TextStyle(
-                  color: textDark,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: -0.2,
-                ),
-              ),
-
-              const SizedBox(height: 4),
-
-              Text(
-                subtitle,
-                style: const TextStyle(
-                  color: textMuted,
-                  fontSize: 11,
-                  height: 1.3,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildComingSoonPage(
-    String title,
-    String iconAsset,
-  ) {
+  Widget _buildComingSoonPage(String title, String iconAsset) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(30),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: 88,
-              height: 88,
-              decoration: BoxDecoration(
-                color: primarySoft,
-                borderRadius: BorderRadius.circular(26),
-              ),
-              padding: const EdgeInsets.all(24),
-              child: _svg(
-                iconAsset,
-                color: primary,
-                size: 40,
+            TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0.0, end: 1.0),
+              duration: const Duration(milliseconds: 700),
+              curve: Curves.elasticOut,
+              builder: (context, value, child) {
+                return Transform.scale(
+                  scale: value,
+                  child: Transform.rotate(
+                    angle: (1 - value) * 0.5,
+                    child: child,
+                  ),
+                );
+              },
+              child: Container(
+                width: 88,
+                height: 88,
+                decoration: BoxDecoration(
+                  color: primarySoft,
+                  borderRadius: BorderRadius.circular(26),
+                  boxShadow: [
+                    BoxShadow(
+                      color: primary.withOpacity(0.2),
+                      blurRadius: 24,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.all(24),
+                child: _svg(iconAsset, color: primary, size: 40),
               ),
             ),
-
             const SizedBox(height: 22),
-
             Text(
               title,
               style: const TextStyle(
@@ -563,9 +433,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 letterSpacing: -0.3,
               ),
             ),
-
             const SizedBox(height: 8),
-
             const Text(
               'Cette fonctionnalité sera bientôt disponible.',
               textAlign: TextAlign.center,
@@ -583,15 +451,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildBottomMenu() {
     return Container(
-      padding: const EdgeInsets.only(
-        top: 8,
-        bottom: 8,
-      ),
+      padding: const EdgeInsets.only(top: 8, bottom: 8),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: const Border(
-          top: BorderSide(color: border),
-        ),
+        border: const Border(top: BorderSide(color: border)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
@@ -620,85 +483,36 @@ class _HomeScreenState extends State<HomeScreen> {
                   return SizedBox(
                     width: itemWidth,
                     height: 54,
-                    child: InkWell(
-                      
-
-
-
-                    
-onTap: () {
-  switch (index) {
-    case 0:
-      setState(() {
-        _selectedIndex = 0;
-      });
-      break;
-
-    case 1:
-      Navigator.pushNamed(context, '/enfants');
-      break;
-
-    case 2:
-      Navigator.pushNamed(context, '/bulletins');
-      break;
-
-    case 3:
-      Navigator.pushNamed(context, '/annonces');
-      break;
-
-    case 4:
-      Navigator.pushNamed(context, '/chat');
-      break;
-
-    case 5:
-      Navigator.pushNamed(context, '/profil');
-      break;
-
-    case 6:
-      Navigator.pushNamed(context, '/reglages');
-      break;
-  }
-},
-
-
-
-
-                      borderRadius: BorderRadius.circular(12),
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 3),
-                        decoration: BoxDecoration(
-                          color: selected
-                              ? primarySoft
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            _svg(
-                              item.iconAsset,
-                              color: selected ? primary : textMuted,
-                              size: 21,
-                            ),
-
-                            const SizedBox(height: 3),
-
-                            Text(
-                              item.title,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: selected
-                                    ? FontWeight.bold
-                                    : FontWeight.w500,
-                                color: selected ? primary : textMuted,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                    child: _AnimatedMenuItem(
+                      selected: selected,
+                      title: item.title,
+                      svgBuilder: (color, size) =>
+                          _svg(item.iconAsset, color: color, size: size),
+                      onTap: () {
+                        switch (index) {
+                          case 0:
+                            setState(() => _selectedIndex = 0);
+                            break;
+                          case 1:
+                            Navigator.pushNamed(context, '/enfants');
+                            break;
+                          case 2:
+                            Navigator.pushNamed(context, '/bulletins');
+                            break;
+                          case 3:
+                            Navigator.pushNamed(context, '/annonces');
+                            break;
+                          case 4:
+                            Navigator.pushNamed(context, '/chat');
+                            break;
+                          case 5:
+                            Navigator.pushNamed(context, '/profil');
+                            break;
+                          case 6:
+                            Navigator.pushNamed(context, '/reglages');
+                            break;
+                        }
+                      },
                     ),
                   );
                 },
@@ -727,18 +541,29 @@ onTap: () {
             children: [
               Row(
                 children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: primarySoft,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.all(10),
-                    child: _svg(
-                      'assets/icons/bell.svg',
-                      color: primary,
-                      size: 20,
+                  TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0.0, end: 1.0),
+                    duration: const Duration(milliseconds: 400),
+                    curve: Curves.easeOutBack,
+                    builder: (context, value, child) {
+                      return Transform.rotate(
+                        angle: (1 - value) * 0.5,
+                        child: Transform.scale(scale: value, child: child),
+                      );
+                    },
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: primarySoft,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.all(10),
+                      child: _svg(
+                        'assets/icons/bell.svg',
+                        color: primary,
+                        size: 20,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -753,9 +578,7 @@ onTap: () {
                   ),
                 ],
               ),
-
               const SizedBox(height: 24),
-
               Center(
                 child: Column(
                   children: [
@@ -789,6 +612,980 @@ onTap: () {
           ),
         );
       },
+    );
+  }
+}
+
+// ═════════════════════════════════════════════════
+// 🌟 LOGO AVEC GLOW PULSANT
+// ═════════════════════════════════════════════════
+
+class _GlowingLogo extends StatefulWidget {
+  final Widget Function(Color color, double size) svgBuilder;
+
+  const _GlowingLogo({required this.svgBuilder});
+
+  @override
+  State<_GlowingLogo> createState() => _GlowingLogoState();
+}
+
+class _GlowingLogoState extends State<_GlowingLogo>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2000),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: const Duration(milliseconds: 600),
+      curve: Curves.easeOutBack,
+      builder: (context, value, child) {
+        return Transform.scale(scale: value, child: child);
+      },
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          final glow = 0.15 + (_controller.value * 0.15);
+          return Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [
+                  _HomeScreenState.primary,
+                  _HomeScreenState.primaryDark,
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: _HomeScreenState.primary.withOpacity(glow),
+                  blurRadius: 16 + (_controller.value * 12),
+                  spreadRadius: _controller.value * 2,
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.all(10),
+            child: widget.svgBuilder(Colors.white, 22),
+          );
+        },
+      ),
+    );
+  }
+}
+
+// ═════════════════════════════════════════════════
+// 🌈 CARTE BIENVENUE ANIMÉE (dégradé + shimmer + particules)
+// ═════════════════════════════════════════════════
+
+class _AnimatedWelcomeCard extends StatefulWidget {
+  final Widget Function(Color color, double size) svgBuilder;
+
+  const _AnimatedWelcomeCard({required this.svgBuilder});
+
+  @override
+  State<_AnimatedWelcomeCard> createState() => _AnimatedWelcomeCardState();
+}
+
+class _AnimatedWelcomeCardState extends State<_AnimatedWelcomeCard>
+    with TickerProviderStateMixin {
+  late AnimationController _gradientController;
+  late AnimationController _shimmerController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _gradientController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 4000),
+    )..repeat();
+
+    _shimmerController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2500),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _gradientController.dispose();
+    _shimmerController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _gradientController,
+      builder: (context, child) {
+        return Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: _HomeScreenState.primary.withOpacity(0.3),
+                blurRadius: 25,
+                offset: const Offset(0, 12),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: Stack(
+              children: [
+                // ── Fond dégradé animé ──
+                Positioned.fill(
+                  child: AnimatedBuilder(
+                    animation: _gradientController,
+                    builder: (context, _) {
+                      final t = _gradientController.value;
+                      return Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: const [
+                              Color(0xFF2563EB),
+                              Color(0xFF1D4ED8),
+                              Color(0xFF7C3AED),
+                              Color(0xFF2563EB),
+                            ],
+                            begin: Alignment(
+                              math.cos(t * 2 * math.pi),
+                              math.sin(t * 2 * math.pi),
+                            ),
+                            end: Alignment(
+                              -math.cos(t * 2 * math.pi),
+                              -math.sin(t * 2 * math.pi),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+
+                // ── Particules flottantes ──
+                ..._buildParticles(),
+
+                // ── Contenu ──
+                Padding(
+                  padding: const EdgeInsets.all(22),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 58,
+                        height: 58,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.22),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.35),
+                            width: 1.5,
+                          ),
+                        ),
+                        padding: const EdgeInsets.all(15),
+                        child: widget.svgBuilder(Colors.white, 28),
+                      ),
+                      const SizedBox(width: 16),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Votre espace scolaire',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: -0.3,
+                              ),
+                            ),
+                            SizedBox(height: 6),
+                            Text(
+                              'Retrouvez facilement les informations importantes concernant vos enfants.',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 13,
+                                height: 1.4,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // ── Shimmer brillant ──
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: AnimatedBuilder(
+                      animation: _shimmerController,
+                      builder: (context, _) {
+                        return Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment(
+                                -1 + _shimmerController.value * 2,
+                                -0.3,
+                              ),
+                              end: Alignment(
+                                _shimmerController.value * 2,
+                                0.3,
+                              ),
+                              colors: [
+                                Colors.white.withOpacity(0),
+                                Colors.white.withOpacity(0.25),
+                                Colors.white.withOpacity(0),
+                              ],
+                              stops: const [0.35, 0.5, 0.65],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  List<Widget> _buildParticles() {
+    final particles = <Widget>[];
+    final rng = math.Random(42); // seed fixe pour stabilité
+
+    for (int i = 0; i < 8; i++) {
+      final startX = rng.nextDouble();
+      final startY = rng.nextDouble();
+      final size = 2.0 + rng.nextDouble() * 3;
+      final delay = rng.nextDouble();
+
+      particles.add(
+        Positioned(
+          left: startX * 300,
+          top: startY * 120,
+          child: _FloatingParticle(
+            size: size,
+            delay: delay,
+          ),
+        ),
+      );
+    }
+
+    return particles;
+  }
+}
+
+class _FloatingParticle extends StatefulWidget {
+  final double size;
+  final double delay;
+
+  const _FloatingParticle({
+    required this.size,
+    required this.delay,
+  });
+
+  @override
+  State<_FloatingParticle> createState() => _FloatingParticleState();
+}
+
+class _FloatingParticleState extends State<_FloatingParticle>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 3000 + (widget.delay * 2000).toInt()),
+    );
+
+    Future.delayed(Duration(milliseconds: (widget.delay * 1000).toInt()), () {
+      if (mounted) _controller.repeat();
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        final t = _controller.value;
+        return Transform.translate(
+          offset: Offset(
+            math.sin(t * 2 * math.pi) * 15,
+            -t * 60,
+          ),
+          child: Opacity(
+            opacity: (1 - t).clamp(0.0, 1.0) * 0.7,
+            child: Container(
+              width: widget.size,
+              height: widget.size,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.white.withOpacity(0.8),
+                    blurRadius: 6,
+                    spreadRadius: 1,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ═════════════════════════════════════════════════
+// 📊 COMPTEUR ANIMÉ
+// ═════════════════════════════════════════════════
+
+class _AnimatedCounter extends StatelessWidget {
+  final int value;
+  final TextStyle style;
+
+  const _AnimatedCounter({
+    required this.value,
+    required this.style,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<int>(
+      tween: IntTween(begin: 0, end: value),
+      duration: const Duration(milliseconds: 900),
+      curve: Curves.easeOutCubic,
+      builder: (context, val, _) {
+        return Text('$val', style: style);
+      },
+    );
+  }
+}
+
+// ═════════════════════════════════════════════════
+// 🎨 CARTE INFO AVEC HOVER MAGNÉTIQUE + RIPPLE
+// ═════════════════════════════════════════════════
+
+class _HoverableInfoCard extends StatefulWidget {
+  final String iconAsset;
+  final String title;
+  final String subtitle;
+  final Color accentColor;
+  final VoidCallback onTap;
+  final Widget Function(String asset, {Color? color, double size}) svgBuilder;
+
+  const _HoverableInfoCard({
+    required this.iconAsset,
+    required this.title,
+    required this.subtitle,
+    required this.accentColor,
+    required this.onTap,
+    required this.svgBuilder,
+  });
+
+  @override
+  State<_HoverableInfoCard> createState() => _HoverableInfoCardState();
+}
+
+class _HoverableInfoCardState extends State<_HoverableInfoCard>
+    with SingleTickerProviderStateMixin {
+  bool _isHovered = false;
+  bool _isPressed = false;
+  Offset _mousePosition = Offset.zero;
+
+  // Animation de ripple
+  late AnimationController _rippleController;
+  Offset _ripplePosition = Offset.zero;
+
+  @override
+  void initState() {
+    super.initState();
+    _rippleController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+  }
+
+  @override
+  void dispose() {
+    _rippleController.dispose();
+    super.dispose();
+  }
+
+  void _handleTapDown(TapDownDetails details) {
+    setState(() {
+      _isPressed = true;
+      _ripplePosition = details.localPosition;
+    });
+    _rippleController.forward(from: 0);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final active = _isHovered || _isPressed;
+
+    // Magnétisme : la carte suit légèrement le curseur
+    final tiltX = _isHovered
+        ? ((_mousePosition.dx / 200) - 0.5) * 0.06
+        : 0.0;
+    final tiltY = _isHovered
+        ? ((_mousePosition.dy / 200) - 0.5) * 0.06
+        : 0.0;
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      onHover: (event) {
+        setState(() {
+          _mousePosition = event.localPosition;
+        });
+      },
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTapDown: _handleTapDown,
+        onTapUp: (_) => setState(() => _isPressed = false),
+        onTapCancel: () => setState(() => _isPressed = false),
+        onTap: widget.onTap,
+        child: AnimatedScale(
+          scale: _isPressed ? 0.96 : (_isHovered ? 1.04 : 1.0),
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOutCubic,
+          child: Transform(
+            transform: Matrix4.identity()
+              ..setEntry(3, 2, 0.001)
+              ..rotateX(tiltY)
+              ..rotateY(tiltX),
+            alignment: Alignment.center,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeOutCubic,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: active
+                    ? Color.lerp(Colors.white, widget.accentColor, 0.05)
+                    : Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: active
+                      ? widget.accentColor
+                      : const Color(0xFFE5E7EB),
+                  width: active ? 1.5 : 1.0,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: widget.accentColor
+                        .withOpacity(active ? 0.28 : 0.08),
+                    blurRadius: active ? 28 : 12,
+                    offset: Offset(0, active ? 12 : 6),
+                    spreadRadius: active ? 1 : 0,
+                  ),
+                ],
+              ),
+              child: Stack(
+                children: [
+                  // ── Ripple au tap ──
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: AnimatedBuilder(
+                        animation: _rippleController,
+                        builder: (context, _) {
+                          if (_rippleController.value == 0) {
+                            return const SizedBox.shrink();
+                          }
+                          final size = _rippleController.value * 250;
+                          return ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: Stack(
+                              children: [
+                                Positioned(
+                                  left: _ripplePosition.dx - size / 2,
+                                  top: _ripplePosition.dy - size / 2,
+                                  child: Container(
+                                    width: size,
+                                    height: size,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: widget.accentColor.withOpacity(
+                                        (1 - _rippleController.value) * 0.3,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+
+                  // ── Contenu ──
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          AnimatedScale(
+                            scale: active ? 1.1 : 1.0,
+                            duration: const Duration(milliseconds: 250),
+                            curve: Curves.easeOutBack,
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 250),
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: widget.accentColor
+                                    .withOpacity(active ? 0.2 : 0.1),
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: active
+                                    ? [
+                                        BoxShadow(
+                                          color: widget.accentColor
+                                              .withOpacity(0.3),
+                                          blurRadius: 12,
+                                          spreadRadius: 1,
+                                        ),
+                                      ]
+                                    : null,
+                              ),
+                              padding: const EdgeInsets.all(11),
+                              child: widget.svgBuilder(
+                                widget.iconAsset,
+                                color: widget.accentColor,
+                                size: 22,
+                              ),
+                            ),
+                          ),
+                          AnimatedOpacity(
+                            opacity: active ? 1.0 : 0.0,
+                            duration: const Duration(milliseconds: 250),
+                            child: AnimatedSlide(
+                              offset: active
+                                  ? Offset.zero
+                                  : const Offset(-0.4, 0.4),
+                              duration: const Duration(milliseconds: 250),
+                              curve: Curves.easeOutCubic,
+                              child: Container(
+                                width: 26,
+                                height: 26,
+                                decoration: BoxDecoration(
+                                  color:
+                                      widget.accentColor.withOpacity(0.15),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                padding: const EdgeInsets.all(6),
+                                child: widget.svgBuilder(
+                                  'assets/icons/arrow_right.svg',
+                                  color: widget.accentColor,
+                                  size: 14,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 13),
+                      AnimatedDefaultTextStyle(
+                        duration: const Duration(milliseconds: 250),
+                        style: TextStyle(
+                          color: active
+                              ? widget.accentColor
+                              : _HomeScreenState.textDark,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: -0.2,
+                        ),
+                        child: Text(widget.title),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        widget.subtitle,
+                        style: const TextStyle(
+                          color: _HomeScreenState.textMuted,
+                          fontSize: 11,
+                          height: 1.3,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ═════════════════════════════════════════════════
+// WIDGETS ANIMÉS RÉUTILISABLES
+// ═════════════════════════════════════════════════
+
+class _FadeSlideIn extends StatefulWidget {
+  final Widget child;
+  final int delay;
+
+  const _FadeSlideIn({
+    required this.child,
+    this.delay = 0,
+  });
+
+  @override
+  State<_FadeSlideIn> createState() => _FadeSlideInState();
+}
+
+class _FadeSlideInState extends State<_FadeSlideIn>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _opacity;
+  late Animation<Offset> _slide;
+  late Animation<double> _rotation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+
+    _opacity = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
+
+    _slide = Tween<Offset>(
+      begin: const Offset(0, 0.2),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
+    );
+
+    _rotation = Tween<double>(
+      begin: 0.03,
+      end: 0.0,
+    ).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
+    );
+
+    Future.delayed(Duration(milliseconds: widget.delay), () {
+      if (mounted) _controller.forward();
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Opacity(
+          opacity: _opacity.value,
+          child: Transform.translate(
+            offset: _slide.value * 60,
+            child: Transform.rotate(
+              angle: _rotation.value,
+              child: child,
+            ),
+          ),
+        );
+      },
+      child: widget.child,
+    );
+  }
+}
+
+class _AnimatedMenuItem extends StatefulWidget {
+  final bool selected;
+  final String title;
+  final VoidCallback onTap;
+  final Widget Function(Color color, double size) svgBuilder;
+
+  const _AnimatedMenuItem({
+    required this.selected,
+    required this.title,
+    required this.onTap,
+    required this.svgBuilder,
+  });
+
+  @override
+  State<_AnimatedMenuItem> createState() => _AnimatedMenuItemState();
+}
+
+class _AnimatedMenuItemState extends State<_AnimatedMenuItem>
+    with SingleTickerProviderStateMixin {
+  bool _pressed = false;
+  late AnimationController _pulseController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant _AnimatedMenuItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.selected && !oldWidget.selected) {
+      _pulseController.forward(from: 0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) => setState(() => _pressed = false),
+      onTapCancel: () => setState(() => _pressed = false),
+      onTap: widget.onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOutCubic,
+        margin: const EdgeInsets.symmetric(horizontal: 3),
+        decoration: BoxDecoration(
+          color: widget.selected
+              ? _HomeScreenState.primarySoft
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // Pulse lumineux sur onglet actif
+            if (widget.selected)
+              Positioned.fill(
+                child: AnimatedBuilder(
+                  animation: _pulseController,
+                  builder: (context, _) {
+                    final t = _pulseController.value;
+                    return Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        color: _HomeScreenState.primary
+                            .withOpacity((1 - t) * 0.15),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                AnimatedScale(
+                  scale: widget.selected ? 1.15 : (_pressed ? 0.9 : 1.0),
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeOutBack,
+                  child: AnimatedSlide(
+                    offset: widget.selected
+                        ? const Offset(0, -0.08)
+                        : Offset.zero,
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.easeOut,
+                    child: widget.svgBuilder(
+                      widget.selected
+                          ? _HomeScreenState.primary
+                          : _HomeScreenState.textMuted,
+                      21,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 3),
+                AnimatedDefaultTextStyle(
+                  duration: const Duration(milliseconds: 200),
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight:
+                        widget.selected ? FontWeight.bold : FontWeight.w500,
+                    color: widget.selected
+                        ? _HomeScreenState.primary
+                        : _HomeScreenState.textMuted,
+                  ),
+                  child: Text(
+                    widget.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AnimatedBellButton extends StatefulWidget {
+  final VoidCallback onTap;
+  final Widget Function(Color color, double size) svgBuilder;
+
+  const _AnimatedBellButton({
+    required this.onTap,
+    required this.svgBuilder,
+  });
+
+  @override
+  State<_AnimatedBellButton> createState() => _AnimatedBellButtonState();
+}
+
+class _AnimatedBellButtonState extends State<_AnimatedBellButton>
+    with TickerProviderStateMixin {
+  late AnimationController _shakeController;
+  late AnimationController _waveController;
+
+  @override
+  void initState() {
+    super.initState();
+    _shakeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _waveController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+  }
+
+  @override
+  void dispose() {
+    _shakeController.dispose();
+    _waveController.dispose();
+    super.dispose();
+  }
+
+  void _handleTap() {
+    _shakeController.forward(from: 0);
+    _waveController.forward(from: 0);
+    widget.onTap();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: _handleTap,
+      behavior: HitTestBehavior.opaque,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Onde qui se propage au tap
+          AnimatedBuilder(
+            animation: _waveController,
+            builder: (context, _) {
+              final t = _waveController.value;
+              if (t == 0) return const SizedBox.shrink();
+
+              final size = 40 + t * 40;
+              return Opacity(
+                opacity: (1 - t).clamp(0.0, 1.0),
+                child: Container(
+                  width: size,
+                  height: size,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: _HomeScreenState.primary.withOpacity(0.5),
+                      width: 2,
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+
+          // Cloche avec wiggle
+          AnimatedBuilder(
+            animation: _shakeController,
+            builder: (context, child) {
+              final t = _shakeController.value;
+              final angle = math.sin(t * math.pi * 6) * (1 - t) * 0.4;
+              return Transform.rotate(angle: angle, child: child);
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: widget.svgBuilder(_HomeScreenState.textDark, 24),
+            ),
+          ),
+
+          // Badge pulse
+          Positioned(
+            right: 6,
+            top: 5,
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0.9, end: 1.1),
+              duration: const Duration(milliseconds: 800),
+              curve: Curves.easeInOut,
+              builder: (context, value, child) =>
+                  Transform.scale(scale: value, child: child),
+              child: Container(
+                width: 9,
+                height: 9,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEF4444),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 1.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFEF4444).withOpacity(0.6),
+                      blurRadius: 6,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

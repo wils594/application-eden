@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_file_dialog/flutter_file_dialog.dart';
@@ -221,32 +220,10 @@ class _BulletinsScreenState extends State<BulletinsScreen> {
         titleSpacing: 20,
         title: Row(
           children: [
-            Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [primary, primaryDark],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: primary.withOpacity(0.25),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              padding: const EdgeInsets.all(10),
-              child: SvgPicture.asset(
-                'assets/icons/file-text.svg',
-                colorFilter: const ColorFilter.mode(
-                  Colors.white,
-                  BlendMode.srcIn,
-                ),
-              ),
+            // 🌟 Logo avec glow subtil
+            _GlowingFileLogo(
+              svgBuilder: (color, size) =>
+                  _svg(asset: 'assets/icons/file-text.svg', color: color, size: size),
             ),
             const SizedBox(width: 12),
             const Expanded(
@@ -278,16 +255,15 @@ class _BulletinsScreenState extends State<BulletinsScreen> {
           ],
         ),
         actions: [
-          IconButton(
-            onPressed: _isLoading ? null : _loadBulletins,
-            tooltip: 'Actualiser',
-            icon: _svg(
-              asset: 'assets/icons/refresh.svg',
-              color: textDark,
-              size: 22,
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: _RefreshButton(
+              isLoading: _isLoading,
+              onTap: _loadBulletins,
+              svgBuilder: (color, size) =>
+                  _svg(asset: 'assets/icons/refresh.svg', color: color, size: size),
             ),
           ),
-          const SizedBox(width: 8),
         ],
       ),
       body: _buildBody(),
@@ -299,14 +275,54 @@ class _BulletinsScreenState extends State<BulletinsScreen> {
   // --------------------------------------------------
 
   Widget _buildBody() {
+    // ── Chargement ──
     if (_isLoading) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CircularProgressIndicator(color: primary),
-            SizedBox(height: 16),
-            Text(
+            // Double cercle + SVG
+            Container(
+              width: 96,
+              height: 96,
+              decoration: const BoxDecoration(
+                color: primarySoft,
+                shape: BoxShape.circle,
+              ),
+              alignment: Alignment.center,
+              child: Container(
+                width: 68,
+                height: 68,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: primary.withOpacity(0.15),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.all(18),
+                child: _svg(
+                  asset: 'assets/icons/file-text.svg',
+                  color: primary,
+                  size: 32,
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            const SizedBox(
+              width: 28,
+              height: 28,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.5,
+                color: primary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
               'Chargement des bulletins...',
               style: TextStyle(
                 color: textMuted,
@@ -319,6 +335,7 @@ class _BulletinsScreenState extends State<BulletinsScreen> {
       );
     }
 
+    // ── Erreur ──
     if (_error != null) {
       return Center(
         child: Padding(
@@ -363,21 +380,11 @@ class _BulletinsScreenState extends State<BulletinsScreen> {
                 ),
               ),
               const SizedBox(height: 22),
-              ElevatedButton.icon(
-                onPressed: _loadBulletins,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Réessayer'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 22,
-                    vertical: 12,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
+              // Bouton "Réessayer" stylé avec SVG
+              _RetryButton(
+                onTap: _loadBulletins,
+                svgBuilder: (color, size) =>
+                    _svg(asset: 'assets/icons/refresh.svg', color: color, size: size),
               ),
             ],
           ),
@@ -385,6 +392,7 @@ class _BulletinsScreenState extends State<BulletinsScreen> {
       );
     }
 
+    // ── Aucun bulletin ──
     if (_bulletins.isEmpty) {
       return RefreshIndicator(
         onRefresh: _loadBulletins,
@@ -454,6 +462,7 @@ class _BulletinsScreenState extends State<BulletinsScreen> {
       );
     }
 
+    // ── Liste des bulletins (avec apparition en cascade) ──
     return RefreshIndicator(
       onRefresh: _loadBulletins,
       color: primary,
@@ -463,7 +472,10 @@ class _BulletinsScreenState extends State<BulletinsScreen> {
         itemCount: _bulletins.length,
         separatorBuilder: (_, __) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
-          return _buildBulletinCard(_bulletins[index]);
+          return _FadeSlideIn(
+            delay: index * 70,
+            child: _buildBulletinCard(_bulletins[index]),
+          );
         },
       ),
     );
@@ -481,24 +493,13 @@ class _BulletinsScreenState extends State<BulletinsScreen> {
     final term = bulletin['term']?.toString() ?? '';
     final schoolYear = bulletin['school_year']?.toString() ?? '';
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: border),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+    return _PressableBulletinCard(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // ── En-tête : avatar + infos ──
             Row(
               children: [
                 Container(
@@ -585,68 +586,34 @@ class _BulletinsScreenState extends State<BulletinsScreen> {
                 ),
               ],
             ),
+
             const SizedBox(height: 14),
+
+            // ── Actions ──
             Row(
               children: [
+                // Bouton "Consulter" (outlined)
                 Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => _viewBulletin(bulletin),
-                    icon: const Icon(
-                      Icons.visibility_outlined,
-                      size: 20,
-                    ),
-                    label: const Text('Consulter'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF43617D),
-                      side: const BorderSide(
-                        color: Color(0xFF9CA3AF),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 13,
-                        horizontal: 6,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(28),
-                      ),
-                    ),
+                  child: _ActionButton(
+                    onTap: () => _viewBulletin(bulletin),
+                    iconAsset: 'assets/icons/eye.svg',
+                    label: 'Consulter',
+                    filled: false,
+                    svgBuilder: _svg,
                   ),
                 ),
+
                 const SizedBox(width: 8),
+
+                // Bouton "Télécharger" (soft)
                 Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: _isSaving
-                        ? null
-                        : () => _saveBulletin(bulletin),
-                    icon: _isSaving
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: primary,
-                            ),
-                          )
-                        : const Icon(
-                            Icons.download_outlined,
-                            size: 20,
-                          ),
-                    label: Text(
-                      _isSaving ? 'En cours...' : 'Télécharger',
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: primarySoft,
-                      foregroundColor: const Color(0xFF43617D),
-                      disabledBackgroundColor: primarySoft,
-                      disabledForegroundColor: textMuted,
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 13,
-                        horizontal: 6,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
+                  child: _ActionButton(
+                    onTap: _isSaving ? null : () => _saveBulletin(bulletin),
+                    iconAsset: 'assets/icons/download.svg',
+                    label: _isSaving ? 'En cours...' : 'Télécharger',
+                    filled: true,
+                    isLoading: _isSaving,
+                    svgBuilder: _svg,
                   ),
                 ),
               ],
@@ -654,6 +621,422 @@ class _BulletinsScreenState extends State<BulletinsScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+// ═════════════════════════════════════════════════
+// 🌟 LOGO AVEC GLOW
+// ═════════════════════════════════════════════════
+
+class _GlowingFileLogo extends StatefulWidget {
+  final Widget Function(Color color, double size) svgBuilder;
+
+  const _GlowingFileLogo({required this.svgBuilder});
+
+  @override
+  State<_GlowingFileLogo> createState() => _GlowingFileLogoState();
+}
+
+class _GlowingFileLogoState extends State<_GlowingFileLogo>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2000),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: const Duration(milliseconds: 600),
+      curve: Curves.easeOutBack,
+      builder: (context, value, child) =>
+          Transform.scale(scale: value, child: child),
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          final glow = 0.15 + (_controller.value * 0.15);
+          return Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [
+                  _BulletinsScreenState.primary,
+                  _BulletinsScreenState.primaryDark,
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: _BulletinsScreenState.primary.withOpacity(glow),
+                  blurRadius: 14 + (_controller.value * 10),
+                  spreadRadius: _controller.value * 1.5,
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.all(10),
+            child: widget.svgBuilder(Colors.white, 22),
+          );
+        },
+      ),
+    );
+  }
+}
+
+// ═════════════════════════════════════════════════
+// 🔄 BOUTON REFRESH (avec spinner si loading)
+// ═════════════════════════════════════════════════
+
+class _RefreshButton extends StatelessWidget {
+  final bool isLoading;
+  final VoidCallback onTap;
+  final Widget Function(Color color, double size) svgBuilder;
+
+  const _RefreshButton({
+    required this.isLoading,
+    required this.onTap,
+    required this.svgBuilder,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      onPressed: isLoading ? null : onTap,
+      tooltip: 'Actualiser',
+      icon: isLoading
+          ? const SizedBox(
+              width: 22,
+              height: 22,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.2,
+                color: _BulletinsScreenState.primary,
+              ),
+            )
+          : svgBuilder(_BulletinsScreenState.textDark, 22),
+    );
+  }
+}
+
+// ═════════════════════════════════════════════════
+// 🔄 BOUTON RÉESSAYER
+// ═════════════════════════════════════════════════
+
+class _RetryButton extends StatefulWidget {
+  final VoidCallback onTap;
+  final Widget Function(Color color, double size) svgBuilder;
+
+  const _RetryButton({
+    required this.onTap,
+    required this.svgBuilder,
+  });
+
+  @override
+  State<_RetryButton> createState() => _RetryButtonState();
+}
+
+class _RetryButtonState extends State<_RetryButton> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) => setState(() => _pressed = false),
+      onTapCancel: () => setState(() => _pressed = false),
+      onTap: widget.onTap,
+      child: AnimatedScale(
+        scale: _pressed ? 0.96 : 1.0,
+        duration: const Duration(milliseconds: 120),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 22,
+            vertical: 12,
+          ),
+          decoration: BoxDecoration(
+            color: _BulletinsScreenState.primary,
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: _BulletinsScreenState.primary.withOpacity(0.3),
+                blurRadius: 12,
+                offset: const Offset(0, 5),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              widget.svgBuilder(Colors.white, 16),
+              const SizedBox(width: 8),
+              const Text(
+                'Réessayer',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ═════════════════════════════════════════════════
+// 🎯 BOUTON D'ACTION (Consulter / Télécharger)
+// ═════════════════════════════════════════════════
+
+class _ActionButton extends StatefulWidget {
+  final VoidCallback? onTap;
+  final String iconAsset;
+  final String label;
+  final bool filled;
+  final bool isLoading;
+  final Widget Function({
+    required String asset,
+    Color color,
+    double size,
+  }) svgBuilder;
+
+  const _ActionButton({
+    required this.onTap,
+    required this.iconAsset,
+    required this.label,
+    required this.filled,
+    required this.svgBuilder,
+    this.isLoading = false,
+  });
+
+  @override
+  State<_ActionButton> createState() => _ActionButtonState();
+}
+
+class _ActionButtonState extends State<_ActionButton> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = widget.onTap != null;
+
+    final bgColor = widget.filled
+        ? _BulletinsScreenState.primarySoft
+        : Colors.white;
+
+    final fgColor = widget.filled
+        ? _BulletinsScreenState.primary
+        : const Color(0xFF43617D);
+
+    final borderColor = widget.filled
+        ? Colors.transparent
+        : const Color(0xFF9CA3AF);
+
+    return GestureDetector(
+      onTapDown:
+          enabled ? (_) => setState(() => _pressed = true) : null,
+      onTapUp:
+          enabled ? (_) => setState(() => _pressed = false) : null,
+      onTapCancel:
+          enabled ? () => setState(() => _pressed = false) : null,
+      onTap: widget.onTap,
+      child: AnimatedScale(
+        scale: _pressed ? 0.97 : 1.0,
+        duration: const Duration(milliseconds: 120),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(
+            vertical: 13,
+            horizontal: 6,
+          ),
+          decoration: BoxDecoration(
+            color: enabled ? bgColor : bgColor.withOpacity(0.6),
+            borderRadius: BorderRadius.circular(
+              widget.filled ? 16 : 28,
+            ),
+            border: Border.all(
+              color: borderColor,
+              width: widget.filled ? 0 : 1,
+            ),
+            boxShadow: widget.filled
+                ? [
+                    BoxShadow(
+                      color: _BulletinsScreenState.primary
+                          .withOpacity(0.12),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (widget.isLoading)
+                SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: fgColor,
+                  ),
+                )
+              else
+                widget.svgBuilder(
+                  asset: widget.iconAsset,
+                  color: enabled ? fgColor : fgColor.withOpacity(0.5),
+                  size: 20,
+                ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  widget.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color:
+                        enabled ? fgColor : fgColor.withOpacity(0.5),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ═════════════════════════════════════════════════
+// 🎨 CARTE BULLETIN PRESSABLE (hover + press)
+// ═════════════════════════════════════════════════
+
+class _PressableBulletinCard extends StatefulWidget {
+  final Widget child;
+
+  const _PressableBulletinCard({required this.child});
+
+  @override
+  State<_PressableBulletinCard> createState() =>
+      _PressableBulletinCardState();
+}
+
+class _PressableBulletinCardState extends State<_PressableBulletinCard> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      cursor: SystemMouseCursors.click,
+      child: AnimatedScale(
+        scale: _isHovered ? 1.015 : 1.0,
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOutCubic,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOutCubic,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: _isHovered
+                  ? _BulletinsScreenState.primary.withOpacity(0.4)
+                  : _BulletinsScreenState.border,
+              width: _isHovered ? 1.5 : 1.0,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: _BulletinsScreenState.primary
+                    .withOpacity(_isHovered ? 0.12 : 0.04),
+                blurRadius: _isHovered ? 22 : 12,
+                offset: Offset(0, _isHovered ? 10 : 4),
+              ),
+            ],
+          ),
+          child: widget.child,
+        ),
+      ),
+    );
+  }
+}
+
+// ═════════════════════════════════════════════════
+// ✨ APPARITION EN CASCADE
+// ═════════════════════════════════════════════════
+
+class _FadeSlideIn extends StatefulWidget {
+  final Widget child;
+  final int delay;
+
+  const _FadeSlideIn({
+    required this.child,
+    this.delay = 0,
+  });
+
+  @override
+  State<_FadeSlideIn> createState() => _FadeSlideInState();
+}
+
+class _FadeSlideInState extends State<_FadeSlideIn>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _opacity;
+  late Animation<Offset> _slide;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+
+    _opacity = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
+
+    _slide = Tween<Offset>(
+      begin: const Offset(0, 0.15),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
+    );
+
+    Future.delayed(Duration(milliseconds: widget.delay), () {
+      if (mounted) _controller.forward();
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _opacity,
+      child: SlideTransition(position: _slide, child: widget.child),
     );
   }
 }

@@ -11,7 +11,7 @@ class AnnoncesScreen extends StatefulWidget {
   static const Color primaryDark = Color(0xFF1D4ED8);
   static const Color textDark = Color(0xFF111827);
   static const Color textMuted = Color(0xFF6B7280);
-  static const Color background = Color(0xFFF7F9FC);
+  static const Color background = Color(0xFFF0F2F5); // gris Facebook
   static const Color border = Color(0xFFE5E7EB);
   static const Color primarySoft = Color(0xFFEFF6FF);
 
@@ -47,6 +47,37 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
     );
   }
 
+  Color _couleurCategorie(String category) {
+    switch (category.toLowerCase()) {
+      case 'urgent':
+        return const Color(0xFFDC2626);
+      case 'activite':
+      case 'activité':
+        return const Color(0xFF16A34A);
+      case 'evenement':
+      case 'événement':
+        return const Color(0xFF8B5CF6);
+      case 'information':
+      default:
+        return AnnoncesScreen.primary;
+    }
+  }
+
+  /// ✅ Extraction multi-clés (annoncements, data, annonces, liste)
+  List<dynamic> _extraireAnnonces(Map<String, dynamic> data) {
+    if (data['announcements'] is List) return data['announcements'] as List;
+    if (data['data'] is List) return data['data'] as List;
+    if (data['annonces'] is List) return data['annonces'] as List;
+    if (data is List) return data as List;
+    for (final key in data.keys) {
+      if (key.toString().toLowerCase().contains('annonce')) {
+        final value = data[key];
+        if (value is List) return value;
+      }
+    }
+    return [];
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -59,32 +90,11 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
         titleSpacing: 20,
         title: Row(
           children: [
-            Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [
-                    AnnoncesScreen.primary,
-                    AnnoncesScreen.primaryDark,
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: AnnoncesScreen.primary.withOpacity(0.25),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              padding: const EdgeInsets.all(10),
-              child: SvgPicture.asset(
-                'assets/icons/megaphone.svg',
-                colorFilter: const ColorFilter.mode(
-                  Colors.white,
-                  BlendMode.srcIn,
-                ),
+            _GlowingMegaphoneLogo(
+              svgBuilder: (color, size) => _svg(
+                asset: 'assets/icons/megaphone.svg',
+                color: color,
+                size: size,
               ),
             ),
             const SizedBox(width: 12),
@@ -93,7 +103,7 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Annonces de l’école',
+                  'Annonces',
                   style: TextStyle(
                     color: AnnoncesScreen.textDark,
                     fontSize: 17,
@@ -103,7 +113,7 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
                 ),
                 SizedBox(height: 2),
                 Text(
-                  'Les informations importantes',
+                  'Fil de l’école',
                   style: TextStyle(
                     color: AnnoncesScreen.textMuted,
                     fontSize: 11,
@@ -129,31 +139,23 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
           color: AnnoncesScreen.primary,
           child: ListView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(12),
             children: [
               _buildWelcomeCard(),
-              const SizedBox(height: 28),
-              const Text(
-                'Actualités et communiqués',
-                style: TextStyle(
-                  color: AnnoncesScreen.textDark,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: -0.3,
+              const SizedBox(height: 16),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 4),
+                child: Text(
+                  'Publications de l’école',
+                  style: TextStyle(
+                    color: AnnoncesScreen.textDark,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: -0.3,
+                  ),
                 ),
               ),
-              const SizedBox(height: 8),
-              const Text(
-                'Retrouvez ici les annonces, les activités '
-                'et les informations communiquées par l’école.',
-                style: TextStyle(
-                  color: AnnoncesScreen.textMuted,
-                  fontSize: 14,
-                  height: 1.5,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 22),
+              const SizedBox(height: 12),
               FutureBuilder<Map<String, dynamic>>(
                 future: _annoncesFuture,
                 builder: (context, snapshot) {
@@ -167,36 +169,39 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
                   }
 
                   final data = snapshot.data ?? {};
-                  final rawAnnonces = data['announcements'];
+                  final annonces = _extraireAnnonces(data);
 
-                  final annonces = rawAnnonces is List
-                      ? rawAnnonces
-                      : <dynamic>[];
+                  debugPrint('🔍 Annonces trouvées : ${annonces.length}');
 
                   if (annonces.isEmpty) {
                     return _buildEmptyState();
                   }
 
                   return Column(
-                    children: annonces.map<Widget>((item) {
+                    children: List.generate(annonces.length, (index) {
+                      final item = annonces[index];
+
                       if (item is! Map) {
                         return const SizedBox.shrink();
                       }
 
-                      return _buildAnnonce(
-                        Map<String, dynamic>.from(item),
+                      final annonce = Map<String, dynamic>.from(item);
+
+                      return _FadeSlideIn(
+                        delay: index * 70,
+                        child: _buildFacebookPost(annonce),
                       );
-                    }).toList(),
+                    }),
                   );
                 },
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
               const Center(
                 child: Text(
                   'Tirez vers le bas pour actualiser',
                   style: TextStyle(
                     color: AnnoncesScreen.textMuted,
-                    fontSize: 12,
+                    fontSize: 11.5,
                   ),
                 ),
               ),
@@ -210,7 +215,7 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
   Widget _buildWelcomeCard() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(22),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [
@@ -220,20 +225,20 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
             color: AnnoncesScreen.primary.withOpacity(0.25),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Row(
         children: [
           Container(
-            width: 58,
-            height: 58,
+            width: 46,
+            height: 46,
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.18),
               shape: BoxShape.circle,
@@ -242,7 +247,7 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
                 width: 1.5,
               ),
             ),
-            padding: const EdgeInsets.all(15),
+            padding: const EdgeInsets.all(12),
             child: SvgPicture.asset(
               'assets/icons/megaphone.svg',
               colorFilter: const ColorFilter.mode(
@@ -251,7 +256,7 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
               ),
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 12),
           const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -260,19 +265,18 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
                   'Restez informés',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 18,
+                    fontSize: 15,
                     fontWeight: FontWeight.bold,
                     letterSpacing: -0.3,
                   ),
                 ),
-                SizedBox(height: 8),
+                SizedBox(height: 4),
                 Text(
-                  'Suivez les nouvelles, les événements '
-                  'et les communications de l’établissement.',
+                  'Suivez les publications de l’école.',
                   style: TextStyle(
                     color: Colors.white70,
-                    fontSize: 13,
-                    height: 1.5,
+                    fontSize: 12,
+                    height: 1.4,
                   ),
                 ),
               ],
@@ -285,35 +289,27 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
 
   Widget _buildLoading() {
     return Container(
-      padding: const EdgeInsets.all(35),
+      padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AnnoncesScreen.border),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         children: [
           const SizedBox(
-            width: 32,
-            height: 32,
+            width: 28,
+            height: 28,
             child: CircularProgressIndicator(
               strokeWidth: 2.5,
               color: AnnoncesScreen.primary,
             ),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 14),
           const Text(
             'Chargement des annonces...',
             style: TextStyle(
               color: AnnoncesScreen.textMuted,
-              fontSize: 14,
+              fontSize: 13,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -324,24 +320,16 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
 
   Widget _buildError(String error) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AnnoncesScreen.border),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         children: [
           Container(
-            width: 96,
-            height: 96,
+            width: 80,
+            height: 80,
             decoration: const BoxDecoration(
               color: Color(0xFFFEF2F2),
               shape: BoxShape.circle,
@@ -350,77 +338,40 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
             child: _svg(
               asset: 'assets/icons/cloud-off.svg',
               color: Colors.red.shade700,
-              size: 42,
+              size: 34,
             ),
           ),
-          const SizedBox(height: 22),
-
+          const SizedBox(height: 18),
           const Text(
             'Impossible de charger les annonces',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: AnnoncesScreen.textDark,
-              fontSize: 17,
+              fontSize: 15,
               fontWeight: FontWeight.bold,
               letterSpacing: -0.3,
             ),
           ),
-          const SizedBox(height: 10),
-
+          const SizedBox(height: 8),
           Text(
             error.replaceFirst('Exception: ', ''),
             textAlign: TextAlign.center,
+            maxLines: 4,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               color: AnnoncesScreen.textMuted,
-              fontSize: 13.5,
+              fontSize: 12.5,
               height: 1.5,
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 22),
-
-          Material(
-            color: Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(10),
-              onTap: _chargerAnnonces,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 22,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: AnnoncesScreen.primary,
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AnnoncesScreen.primary.withOpacity(0.3),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _svg(
-                      asset: 'assets/icons/refresh.svg',
-                      color: Colors.white,
-                      size: 16,
-                    ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'Réessayer',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+          const SizedBox(height: 18),
+          _RetryButton(
+            onTap: _chargerAnnonces,
+            svgBuilder: (color, size) => _svg(
+              asset: 'assets/icons/refresh.svg',
+              color: color,
+              size: size,
             ),
           ),
         ],
@@ -428,271 +379,334 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
     );
   }
 
-  Widget _buildAnnonce(Map<String, dynamic> annonce) {
+  // ═════════════════════════════════════════════════
+  // 📘 POST STYLE FACEBOOK
+  // ═════════════════════════════════════════════════
+
+  Widget _buildFacebookPost(Map<String, dynamic> annonce) {
     final title = annonce['title']?.toString() ?? 'Sans titre';
     final content = annonce['content']?.toString() ?? '';
     final category = annonce['category']?.toString() ?? 'information';
     final dateText = _formaterDate(annonce['published_at']);
     final attachmentUrl = annonce['attachment_url']?.toString();
 
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AnnoncesScreen.border),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.025),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ── En-tête : icône + titre + badges ──
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 46,
-                height: 46,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [
-                      AnnoncesScreen.primary,
-                      AnnoncesScreen.primaryDark,
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AnnoncesScreen.primary.withOpacity(0.25),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                padding: const EdgeInsets.all(11),
-                child: SvgPicture.asset(
-                  'assets/icons/megaphone.svg',
-                  colorFilter: const ColorFilter.mode(
-                    Colors.white,
-                    BlendMode.srcIn,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        color: AnnoncesScreen.textDark,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        height: 1.4,
-                        letterSpacing: -0.2,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 6,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AnnoncesScreen.primarySoft,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            _libelleCategorie(category),
-                            style: const TextStyle(
-                              color: AnnoncesScreen.primaryDark,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                        Text(
-                          dateText,
-                          style: const TextStyle(
-                            color: AnnoncesScreen.textMuted,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+    final accentColor = _couleurCategorie(category);
 
-          // ── Contenu ──
-          if (content.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            const Divider(height: 1, color: AnnoncesScreen.border),
-            const SizedBox(height: 14),
-            Text(
-              content,
-              style: const TextStyle(
-                color: AnnoncesScreen.textMuted,
-                fontSize: 14,
-                height: 1.65,
-              ),
-            ),
-          ],
-
-          // ── Pièce jointe (image ou PDF) ──
-          if (attachmentUrl != null && attachmentUrl.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            _buildPieceJointe(attachmentUrl),
-          ],
-        ],
-      ),
-    );
-  }
-
-  // ─────────────────────────────────────────────
-  // Pièce jointe (aperçu comme dans Yass)
-  // ─────────────────────────────────────────────
-
-  Widget _buildPieceJointe(String url) {
-    final lowerUrl = url.toLowerCase();
-
-    final isImage =
-        lowerUrl.endsWith('.jpg') ||
+    final lowerUrl = attachmentUrl?.toLowerCase() ?? '';
+    final isImage = lowerUrl.endsWith('.jpg') ||
         lowerUrl.endsWith('.jpeg') ||
         lowerUrl.endsWith('.png') ||
         lowerUrl.endsWith('.webp') ||
         lowerUrl.endsWith('.gif');
-
     final isPdf = lowerUrl.endsWith('.pdf');
+    final hasAttachment =
+        attachmentUrl != null && attachmentUrl.isNotEmpty;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Petit label
-        Row(
-          children: [
-            _svg(
-              asset: 'assets/icons/paperclip.svg',
-              color: AnnoncesScreen.textMuted,
-              size: 14,
-            ),
-            const SizedBox(width: 6),
-            const Text(
-              'Pièce jointe',
-              style: TextStyle(
-                color: AnnoncesScreen.textMuted,
-                fontSize: 11.5,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.3,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-
-        // Aperçu selon le type
-        if (isImage)
-          _buildImagePreview(url)
-        else if (isPdf)
-          _buildPdfPreview(url)
-        else
-          _buildGenericFilePreview(url),
-      ],
-    );
-  }
-
-  // Aperçu image (vignette cliquable)
-  Widget _buildImagePreview(String url) {
-    return GestureDetector(
-      onTap: () => _ouvrirLien(url),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(14),
-        child: Container(
-          width: double.infinity,
-          constraints: const BoxConstraints(maxHeight: 240),
-          decoration: BoxDecoration(
-            border: Border.all(color: AnnoncesScreen.border),
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Stack(
-            children: [
-              Image.network(
-                url,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                loadingBuilder: (context, child, progress) {
-                  if (progress == null) return child;
-
-                  return Container(
-                    height: 180,
-                    alignment: Alignment.center,
-                    color: AnnoncesScreen.primarySoft,
-                    child: const SizedBox(
-                      width: 26,
-                      height: 26,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.5,
-                        color: AnnoncesScreen.primary,
-                      ),
-                    ),
-                  );
-                },
-                errorBuilder: (context, error, stackTrace) {
-                  return _buildGenericFilePreview(url);
-                },
-              ),
-
-              // Overlay "ouvrir"
-              Positioned(
-                bottom: 10,
-                right: 10,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
-                  ),
+    return _PressablePostCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // ═════════════════════════════════════════
+          // 👤 EN-TÊTE DU POST (style Facebook)
+          // ═════════════════════════════════════════
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                // Avatar
+                Container(
+                  width: 44,
+                  height: 44,
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.65),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _svg(
-                        asset: 'assets/icons/eye.svg',
-                        color: Colors.white,
-                        size: 14,
-                      ),
-                      const SizedBox(width: 6),
-                      const Text(
-                        'Voir',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w600,
-                        ),
+                    gradient: const LinearGradient(
+                      colors: [
+                        AnnoncesScreen.primary,
+                        AnnoncesScreen.primaryDark,
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AnnoncesScreen.primary.withOpacity(0.25),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
                       ),
                     ],
                   ),
+                  alignment: Alignment.center,
+                  child: const Text(
+                    'EA',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(width: 10),
+
+                // Nom + date + catégorie
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'École Eden',
+                        style: TextStyle(
+                          color: AnnoncesScreen.textDark,
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Row(
+                        children: [
+                          Text(
+                            dateText,
+                            style: const TextStyle(
+                              color: AnnoncesScreen.textMuted,
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Container(
+                            width: 3,
+                            height: 3,
+                            decoration: const BoxDecoration(
+                              color: AnnoncesScreen.textMuted,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: accentColor.withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              _libelleCategorie(category),
+                              style: TextStyle(
+                                color: accentColor,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Menu (3 points)
+                _svg(
+                  asset: 'assets/icons/more.svg',
+                  color: AnnoncesScreen.textMuted,
+                  size: 20,
+                ),
+              ],
+            ),
+          ),
+
+          // ═════════════════════════════════════════
+          // 📝 CONTENU (texte du post)
+          // ═════════════════════════════════════════
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Titre en gras
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: AnnoncesScreen.textDark,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    height: 1.35,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+
+                // Contenu
+                if (content.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    content,
+                    style: const TextStyle(
+                      color: Color(0xFF050505),
+                      fontSize: 14,
+                      height: 1.55,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+
+          // ═════════════════════════════════════════
+          // 🖼️ IMAGE (pleine largeur, sans padding)
+          // ═════════════════════════════════════════
+          if (hasAttachment && isImage)
+            GestureDetector(
+              onTap: () => _ouvrirLien(attachmentUrl),
+              child: Container(
+                width: double.infinity,
+                constraints: const BoxConstraints(maxHeight: 320),
+                color: AnnoncesScreen.primarySoft,
+                child: Image.network(
+                  attachmentUrl,
+                  fit: BoxFit.cover,
+                  loadingBuilder: (context, child, progress) {
+                    if (progress == null) return child;
+                    return Container(
+                      height: 200,
+                      color: AnnoncesScreen.primarySoft,
+                      alignment: Alignment.center,
+                      child: const SizedBox(
+                        width: 26,
+                        height: 26,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          color: AnnoncesScreen.primary,
+                        ),
+                      ),
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      height: 120,
+                      color: AnnoncesScreen.primarySoft,
+                      alignment: Alignment.center,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _svg(
+                            asset: 'assets/icons/file-text.svg',
+                            color: AnnoncesScreen.primary,
+                            size: 28,
+                          ),
+                          const SizedBox(height: 6),
+                          const Text(
+                            'Image non disponible',
+                            style: TextStyle(
+                              color: AnnoncesScreen.textMuted,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+
+          // ═════════════════════════════════════════
+          // 📄 PIÈCE JOINTE (PDF ou fichier)
+          // ═════════════════════════════════════════
+          if (hasAttachment && isPdf)
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: _buildAttachment(
+                url: attachmentUrl,
+                iconColor: const Color(0xFFDC2626),
+                iconBg: const Color(0xFFFEF2F2),
+                title: 'Document PDF',
+              ),
+            )
+          else if (hasAttachment && !isImage && !isPdf)
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: _buildAttachment(
+                url: attachmentUrl,
+                iconColor: AnnoncesScreen.primary,
+                iconBg: AnnoncesScreen.primarySoft,
+                title: 'Fichier joint',
+              ),
+            ),
+
+          // ═════════════════════════════════════════
+          // 👍 BARRE D'ACTIONS (style Facebook)
+          // ═════════════════════════════════════════
+          const Divider(height: 1, color: Color(0xFFE5E7EB)),
+
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 8,
+              vertical: 6,
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _buildActionButton(
+                    iconAsset: 'assets/icons/thumbs-up.svg',
+                    label: 'J’aime',
+                  ),
+                ),
+                Expanded(
+                  child: _buildActionButton(
+                    iconAsset: 'assets/icons/message.svg',
+                    label: 'Commenter',
+                  ),
+                ),
+                Expanded(
+                  child: _buildActionButton(
+                    iconAsset: 'assets/icons/share.svg',
+                    label: 'Partager',
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Bouton d'action (J'aime / Commenter / Partager) ──
+  Widget _buildActionButton({
+    required String iconAsset,
+    required String label,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(8),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: () {},
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 8,
+            vertical: 8,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _svg(
+                asset: iconAsset,
+                color: const Color(0xFF65676B),
+                size: 18,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: Color(0xFF65676B),
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
@@ -702,68 +716,43 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
     );
   }
 
-  // Aperçu PDF (bloc cliquable avec icône)
-  Widget _buildPdfPreview(String url) {
-    return _buildClickableFile(
-      url: url,
-      iconAsset: 'assets/icons/file-text.svg',
-      iconColor: const Color(0xFFDC2626), // rouge PDF
-      iconBg: const Color(0xFFFEF2F2),
-      title: 'Document PDF',
-      subtitle: 'Appuyez pour ouvrir',
-    );
-  }
-
-  // Aperçu générique (doc, xls, etc.)
-  Widget _buildGenericFilePreview(String url) {
-    return _buildClickableFile(
-      url: url,
-      iconAsset: 'assets/icons/file-text.svg',
-      iconColor: AnnoncesScreen.primary,
-      iconBg: AnnoncesScreen.primarySoft,
-      title: 'Fichier joint',
-      subtitle: 'Appuyez pour ouvrir',
-    );
-  }
-
-  Widget _buildClickableFile({
+  // ── Pièce jointe (PDF/générique) ──
+  Widget _buildAttachment({
     required String url,
-    required String iconAsset,
     required Color iconColor,
     required Color iconBg,
     required String title,
-    required String subtitle,
   }) {
     return Material(
       color: Colors.transparent,
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(10),
       child: InkWell(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(10),
         onTap: () => _ouvrirLien(url),
         child: Container(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
+            color: const Color(0xFFF0F2F5),
+            borderRadius: BorderRadius.circular(10),
             border: Border.all(color: AnnoncesScreen.border),
           ),
           child: Row(
             children: [
               Container(
-                width: 44,
-                height: 44,
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
                   color: iconBg,
-                  borderRadius: BorderRadius.circular(11),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                padding: const EdgeInsets.all(11),
+                padding: const EdgeInsets.all(9),
                 child: _svg(
-                  asset: iconAsset,
+                  asset: 'assets/icons/file-text.svg',
                   color: iconColor,
                   size: 22,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -772,16 +761,16 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
                       title,
                       style: const TextStyle(
                         color: AnnoncesScreen.textDark,
-                        fontSize: 14,
+                        fontSize: 13.5,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      style: const TextStyle(
+                    const Text(
+                      'Appuyez pour ouvrir',
+                      style: TextStyle(
                         color: AnnoncesScreen.textMuted,
-                        fontSize: 12,
+                        fontSize: 11.5,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -791,7 +780,7 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
               _svg(
                 asset: 'assets/icons/chevron_right.svg',
                 color: AnnoncesScreen.textMuted,
-                size: 20,
+                size: 18,
               ),
             ],
           ),
@@ -800,7 +789,6 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
     );
   }
 
-  // Ouverture du lien (URL externe)
   Future<void> _ouvrirLien(String url) async {
     final uri = Uri.tryParse(url);
     if (uri == null) return;
@@ -837,20 +825,24 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
   }
 
   String _formaterDate(dynamic value) {
-    if (value == null || value.toString().isEmpty) {
-      return 'Date non disponible';
-    }
+    if (value == null || value.toString().isEmpty) return '';
 
     final date = DateTime.tryParse(value.toString());
+    if (date == null) return '';
 
-    if (date == null) {
-      return 'Date non disponible';
-    }
+    final local = date.toLocal();
+    final now = DateTime.now();
+    final diff = now.difference(local);
 
-    final localDate = date.toLocal();
-    final jour = localDate.day.toString().padLeft(2, '0');
-    final mois = localDate.month.toString().padLeft(2, '0');
-    final annee = localDate.year;
+    // Date relative style Facebook
+    if (diff.inMinutes < 1) return 'À l’instant';
+    if (diff.inMinutes < 60) return 'Il y a ${diff.inMinutes} min';
+    if (diff.inHours < 24) return 'Il y a ${diff.inHours} h';
+    if (diff.inDays < 7) return 'Il y a ${diff.inDays} j';
+
+    final jour = local.day.toString().padLeft(2, '0');
+    final mois = local.month.toString().padLeft(2, '0');
+    final annee = local.year;
 
     return '$jour/$mois/$annee';
   }
@@ -860,77 +852,296 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(
         horizontal: 22,
-        vertical: 35,
+        vertical: 32,
       ),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AnnoncesScreen.border),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         children: [
           Container(
-            width: 96,
-            height: 96,
+            width: 80,
+            height: 80,
             decoration: const BoxDecoration(
               color: AnnoncesScreen.primarySoft,
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,
-            child: Container(
-              width: 68,
-              height: 68,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: AnnoncesScreen.primary.withOpacity(0.15),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              padding: const EdgeInsets.all(18),
-              child: _svg(
-                asset: 'assets/icons/bell_off.svg',
-                color: AnnoncesScreen.primary,
-                size: 32,
-              ),
+            child: _svg(
+              asset: 'assets/icons/bell_off.svg',
+              color: AnnoncesScreen.primary,
+              size: 30,
             ),
           ),
-          const SizedBox(height: 22),
+          const SizedBox(height: 18),
           const Text(
             'Aucune annonce pour le moment',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: AnnoncesScreen.textDark,
-              fontSize: 18,
+              fontSize: 15,
               fontWeight: FontWeight.bold,
               letterSpacing: -0.3,
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           const Text(
-            'Les prochains communiqués et événements '
-            'de l’école apparaîtront ici.',
+            'Les prochains communiqués apparaîtront ici.',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: AnnoncesScreen.textMuted,
-              fontSize: 14,
-              height: 1.6,
+              fontSize: 12.5,
+              height: 1.5,
               fontWeight: FontWeight.w500,
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+// ═════════════════════════════════════════════════
+// 🌟 LOGO GLOW
+// ═════════════════════════════════════════════════
+
+class _GlowingMegaphoneLogo extends StatefulWidget {
+  final Widget Function(Color color, double size) svgBuilder;
+
+  const _GlowingMegaphoneLogo({required this.svgBuilder});
+
+  @override
+  State<_GlowingMegaphoneLogo> createState() =>
+      _GlowingMegaphoneLogoState();
+}
+
+class _GlowingMegaphoneLogoState extends State<_GlowingMegaphoneLogo>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2000),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: const Duration(milliseconds: 600),
+      curve: Curves.easeOutBack,
+      builder: (context, value, child) =>
+          Transform.scale(scale: value, child: child),
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          final glow = 0.15 + (_controller.value * 0.15);
+          return Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [
+                  AnnoncesScreen.primary,
+                  AnnoncesScreen.primaryDark,
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: AnnoncesScreen.primary.withOpacity(glow),
+                  blurRadius: 14 + (_controller.value * 10),
+                  spreadRadius: _controller.value * 1.5,
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.all(10),
+            child: widget.svgBuilder(Colors.white, 22),
+          );
+        },
+      ),
+    );
+  }
+}
+
+// ═════════════════════════════════════════════════
+// 🔄 BOUTON RÉESSAYER
+// ═════════════════════════════════════════════════
+
+class _RetryButton extends StatefulWidget {
+  final VoidCallback onTap;
+  final Widget Function(Color color, double size) svgBuilder;
+
+  const _RetryButton({
+    required this.onTap,
+    required this.svgBuilder,
+  });
+
+  @override
+  State<_RetryButton> createState() => _RetryButtonState();
+}
+
+class _RetryButtonState extends State<_RetryButton> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) => setState(() => _pressed = false),
+      onTapCancel: () => setState(() => _pressed = false),
+      onTap: widget.onTap,
+      child: AnimatedScale(
+        scale: _pressed ? 0.96 : 1.0,
+        duration: const Duration(milliseconds: 120),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 11,
+          ),
+          decoration: BoxDecoration(
+            color: AnnoncesScreen.primary,
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: AnnoncesScreen.primary.withOpacity(0.3),
+                blurRadius: 12,
+                offset: const Offset(0, 5),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              widget.svgBuilder(Colors.white, 15),
+              const SizedBox(width: 8),
+              const Text(
+                'Réessayer',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ═════════════════════════════════════════════════
+// 📘 CARTE POST PRESSABLE (style Facebook)
+// ═════════════════════════════════════════════════
+
+class _PressablePostCard extends StatefulWidget {
+  final Widget child;
+
+  const _PressablePostCard({required this.child});
+
+  @override
+  State<_PressablePostCard> createState() => _PressablePostCardState();
+}
+
+class _PressablePostCardState extends State<_PressablePostCard> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOutCubic,
+        margin: const EdgeInsets.only(bottom: 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(_isHovered ? 0.08 : 0.04),
+              blurRadius: _isHovered ? 16 : 8,
+              offset: Offset(0, _isHovered ? 4 : 2),
+            ),
+          ],
+        ),
+        child: widget.child,
+      ),
+    );
+  }
+}
+
+// ═════════════════════════════════════════════════
+// ✨ APPARITION EN CASCADE
+// ═════════════════════════════════════════════════
+
+class _FadeSlideIn extends StatefulWidget {
+  final Widget child;
+  final int delay;
+
+  const _FadeSlideIn({
+    required this.child,
+    this.delay = 0,
+  });
+
+  @override
+  State<_FadeSlideIn> createState() => _FadeSlideInState();
+}
+
+class _FadeSlideInState extends State<_FadeSlideIn>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _opacity;
+  late Animation<Offset> _slide;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 450),
+    );
+
+    _opacity = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
+
+    _slide = Tween<Offset>(
+      begin: const Offset(0, 0.1),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
+    );
+
+    Future.delayed(Duration(milliseconds: widget.delay), () {
+      if (mounted) _controller.forward();
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _opacity,
+      child: SlideTransition(position: _slide, child: widget.child),
     );
   }
 }

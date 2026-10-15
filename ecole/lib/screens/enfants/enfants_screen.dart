@@ -77,7 +77,6 @@ class _EnfantsScreenState extends State<EnfantsScreen> {
   }
 
   /// Détecte le genre de l'enfant à partir des champs renvoyés par l'API.
-  /// Retourne 'fille' ou 'garcon' (par défaut).
   String _detecterGenre(Map<String, dynamic> enfant) {
     final valeur = (
       enfant['gender'] ??
@@ -412,7 +411,7 @@ class _EnfantsScreenState extends State<EnfantsScreen> {
       return const Center(
         child: Padding(
           padding: EdgeInsets.all(30),
-          child: CircularProgressIndicator(),
+          child: CircularProgressIndicator(color: primaryColor),
         ),
       );
     }
@@ -458,27 +457,27 @@ class _EnfantsScreenState extends State<EnfantsScreen> {
         final classe = enfant['class_name']?.toString() ?? 'Non renseignée';
         final matricule = enfant['matricule']?.toString() ?? 'Non renseigné';
 
-        // Détection du genre (fallback : garçon)
         final genre = _detecterGenre(enfant);
-
-        // Couleur d'avatar cyclique
         final avatarColors = _avatarPalette[index % _avatarPalette.length];
 
-        return _buildChildCard(
-          context: context,
-          nomComplet: nomComplet,
-          classe: classe,
-          matricule: matricule,
-          avatarColors: avatarColors,
-          avatarAsset: genre == 'fille'
-              ? 'assets/icons/girl.svg'
-              : 'assets/icons/boy.svg',
+        return _FadeSlideIn(
+          delay: index * 80,
+          child: _buildChildCard(
+            context: context,
+            nomComplet: nomComplet,
+            classe: classe,
+            matricule: matricule,
+            avatarColors: avatarColors,
+            avatarAsset: genre == 'fille'
+                ? 'assets/icons/girl.svg'
+                : 'assets/icons/boy.svg',
+          ),
         );
       }),
     );
   }
 
-  /// Card enfant (design épuré, sans traits bizarres)
+  /// Card enfant (design épuré, sans bouton bulletins)
   Widget _buildChildCard({
     required BuildContext context,
     required String nomComplet,
@@ -487,180 +486,260 @@ class _EnfantsScreenState extends State<EnfantsScreen> {
     required List<Color> avatarColors,
     required String avatarAsset,
   }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: border),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          // ── Corps de la card ──
-          Padding(
-            padding: const EdgeInsets.all(18),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // Avatar photo SVG (garçon ou fille)
-                Container(
-                  width: 62,
-                  height: 62,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: avatarColors,
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: avatarColors[0].withOpacity(0.3),
-                        blurRadius: 12,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
-                  ),
-                  padding: const EdgeInsets.all(14),
-                  child: SvgPicture.asset(
-                    avatarAsset,
-                    colorFilter: const ColorFilter.mode(
-                      Colors.white,
-                      BlendMode.srcIn,
-                    ),
-                  ),
+    return _PressableCard(
+      accentColor: avatarColors[0],
+      onTap: () {
+        // Action silencieuse pour l'instant
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            // ── Avatar (avec bordure blanche + ombre colorée) ──
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: avatarColors,
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 3),
+                boxShadow: [
+                  BoxShadow(
+                    color: avatarColors[0].withOpacity(0.35),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.all(14),
+              child: SvgPicture.asset(
+                avatarAsset,
+                colorFilter: const ColorFilter.mode(
+                  Colors.white,
+                  BlendMode.srcIn,
+                ),
+              ),
+            ),
 
-                const SizedBox(width: 16),
+            const SizedBox(width: 16),
 
-                // Infos enfant
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+            // ── Infos ──
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Nom
+                  Text(
+                    nomComplet.isEmpty ? 'Nom non renseigné' : nomComplet,
+                    style: const TextStyle(
+                      color: textDark,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: -0.2,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  // Badge classe
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 9,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: primarySoft,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      classe,
+                      style: const TextStyle(
+                        color: primaryColor,
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  // Matricule avec icône
+                  Row(
                     children: [
-                      Text(
-                        nomComplet.isEmpty
-                            ? 'Nom non renseigné'
-                            : nomComplet,
-                        style: const TextStyle(
-                          color: textDark,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: -0.2,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      _svg(
+                        asset: 'assets/icons/badge.svg',
+                        color: textMuted,
+                        size: 13,
                       ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          // Badge classe
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 9,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: primarySoft,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              classe,
-                              style: const TextStyle(
-                                color: primaryColor,
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
+                      const SizedBox(width: 5),
+                      Expanded(
+                        child: Text(
+                          matricule,
+                          style: const TextStyle(
+                            color: textMuted,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      // Matricule
-                      Text(
-                        'Matricule : $matricule',
-                        style: const TextStyle(
-                          color: textMuted,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
                   ),
+                ],
+              ),
+            ),
+
+            const SizedBox(width: 8),
+
+            // ── Chevron (suggère la navigation) ──
+            _svg(
+              asset: 'assets/icons/chevron_right.svg',
+              color: textMuted,
+              size: 20,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ═════════════════════════════════════════════════
+// 🎨 CARTE PRESSABLE (effet hover + press)
+// ═════════════════════════════════════════════════
+
+class _PressableCard extends StatefulWidget {
+  final Widget child;
+  final Color accentColor;
+  final VoidCallback onTap;
+
+  const _PressableCard({
+    required this.child,
+    required this.accentColor,
+    required this.onTap,
+  });
+
+  @override
+  State<_PressableCard> createState() => _PressableCardState();
+}
+
+class _PressableCardState extends State<_PressableCard> {
+  bool _isHovered = false;
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final active = _isHovered || _isPressed;
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTapDown: (_) => setState(() => _isPressed = true),
+        onTapUp: (_) => setState(() => _isPressed = false),
+        onTapCancel: () => setState(() => _isPressed = false),
+        onTap: widget.onTap,
+        child: AnimatedScale(
+          scale: _isPressed ? 0.98 : (_isHovered ? 1.015 : 1.0),
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOutCubic,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOutCubic,
+            margin: const EdgeInsets.only(bottom: 14),
+            decoration: BoxDecoration(
+              color: active
+                  ? Color.lerp(Colors.white, widget.accentColor, 0.03)
+                  : Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: active
+                    ? widget.accentColor.withOpacity(0.5)
+                    : _EnfantsScreenState.border,
+                width: active ? 1.5 : 1.0,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: widget.accentColor
+                      .withOpacity(active ? 0.15 : 0.05),
+                  blurRadius: active ? 20 : 12,
+                  offset: Offset(0, active ? 8 : 4),
                 ),
               ],
             ),
+            child: widget.child,
           ),
-
-          // ── Pied de card : bouton bulletins ──
-          Container(
-            decoration: const BoxDecoration(
-              color: Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(20),
-                bottomRight: Radius.circular(20),
-              ),
-            ),
-            padding: const EdgeInsets.all(12),
-            child: Material(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(12),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(12),
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'La consultation des bulletins sera ajoutée ensuite.',
-                      ),
-                    ),
-                  );
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  decoration: BoxDecoration(
-                    color: primaryColor,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: primaryColor.withOpacity(0.25),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _svg(
-                        asset: 'assets/icons/file-text.svg',
-                        color: Colors.white,
-                        size: 18,
-                      ),
-                      const SizedBox(width: 10),
-                      const Text(
-                        'Consulter les bulletins',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
+    );
+  }
+}
+
+// ═════════════════════════════════════════════════
+// ✨ APPARITION EN CASCADE
+// ═════════════════════════════════════════════════
+
+class _FadeSlideIn extends StatefulWidget {
+  final Widget child;
+  final int delay;
+
+  const _FadeSlideIn({
+    required this.child,
+    this.delay = 0,
+  });
+
+  @override
+  State<_FadeSlideIn> createState() => _FadeSlideInState();
+}
+
+class _FadeSlideInState extends State<_FadeSlideIn>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _opacity;
+  late Animation<Offset> _slide;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+
+    _opacity = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
+
+    _slide = Tween<Offset>(
+      begin: const Offset(0, 0.15),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
+    );
+
+    Future.delayed(Duration(milliseconds: widget.delay), () {
+      if (mounted) _controller.forward();
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _opacity,
+      child: SlideTransition(position: _slide, child: widget.child),
     );
   }
 }
