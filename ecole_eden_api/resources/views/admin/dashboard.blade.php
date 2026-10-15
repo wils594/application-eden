@@ -310,6 +310,9 @@
         .card-icon.green { background: #dcfce7; }
         .card-icon.green svg { stroke: #16a34a; }
 
+        .card-icon.pink { background: #fce7f3; }
+        .card-icon.pink svg { stroke: #db2777; }
+
         .card-label {
             color: #64748b;
             font-size: 13px;
@@ -330,7 +333,6 @@
             line-height: 1.5;
         }
 
-        /* Lien "Associer" dans les cartes */
         .card-link {
             display: inline-flex;
             align-items: center;
@@ -483,6 +485,14 @@
                 </svg>
                 Gestion des classes
             </a>
+
+            <a href="/admin/notes">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+                Gestion des notes
+            </a>
+
             <a href="/admin/bulletins">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -492,6 +502,7 @@
                 </svg>
                 Bulletins scolaires
             </a>
+
             <a href="/admin/annonces">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="m3 11 18-5v12L3 14v-3z"/>
@@ -500,7 +511,6 @@
                 Annonces
             </a>
 
-            {{-- ── Bloc Familles ── --}}
             <div class="menu-title">Familles</div>
             <a href="/admin/parents">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -511,8 +521,6 @@
                 </svg>
                 Gestion des parents
             </a>
-
-            {{-- ✅ NOUVEAU : lien vers l'association --}}
             <a href="/admin/parents/associer">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
@@ -614,7 +622,6 @@
                     <div class="card-number">{{ $totalParents }}</div>
                     <div class="card-note">Parents enregistrés dans la base de données.</div>
 
-                    {{-- ✅ NOUVEAU : lien direct vers l'association --}}
                     <a href="/admin/parents/associer" class="card-link">
                         Associer aux élèves
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -626,16 +633,23 @@
 
                 <div class="card">
                     <div class="card-top">
-                        <div class="card-icon purple">
+                        <div class="card-icon pink">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="m3 11 18-5v12L3 14v-3z"/>
-                                <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                             </svg>
                         </div>
                     </div>
-                    <div class="card-label">Annonces publiées</div>
-                    <div class="card-number">—</div>
-                    <div class="card-note">Données à connecter prochainement.</div>
+                    <div class="card-label">Notes enregistrées</div>
+                    <div class="card-number">{{ $totalNotes ?? '—' }}</div>
+                    <div class="card-note">Notes saisies dans la base de données.</div>
+
+                    <a href="/admin/notes" class="card-link">
+                        Gérer les notes
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                            <polyline points="12 5 19 12 12 19"/>
+                        </svg>
+                    </a>
                 </div>
             </section>
 
@@ -668,13 +682,23 @@
                     </svg>
                 </a>
 
-                {{-- ✅ NOUVEAU : action d'association --}}
                 <a class="action" href="/admin/parents/associer">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
                         <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
                     </svg>
                     Associer parents ↔ élèves
+                    <svg class="arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                        <polyline points="12 5 19 12 12 19"/>
+                    </svg>
+                </a>
+
+                <a class="action" href="/admin/notes">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    Gérer les notes
                     <svg class="arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="5" y1="12" x2="19" y2="12"/>
                         <polyline points="12 5 19 12 12 19"/>

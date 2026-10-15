@@ -7,6 +7,10 @@ use App\Models\Student;
 use App\Http\Controllers\ParentController;
 use App\Models\User;
 use App\Http\Controllers\ParentStudentController;
+use App\Http\Controllers\Admin\GradeController;
+use App\Http\Controllers\Admin\BulletinController;
+use App\Http\Controllers\Admin\AnnouncementController;
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -50,8 +54,12 @@ Route::get('/admin/bulletins', function () {
     return 'Gestion des bulletins';
 });
 
-Route::get('/admin/annonces', function () {
-    return 'Gestion des annonces';
+
+Route::prefix('admin/annonces')->name('admin.annonces.')->group(function () {
+    Route::get('/', [AnnouncementController::class, 'index'])->name('index');
+    Route::get('/create', [AnnouncementController::class, 'create'])->name('create');
+    Route::post('/', [AnnouncementController::class, 'store'])->name('store');
+    Route::delete('/{announcement}', [AnnouncementController::class, 'destroy'])->name('destroy');
 });
 
 Route::get('/admin/messages', function () {
@@ -68,3 +76,30 @@ Route::post('/admin/parents/associer', [
     ParentStudentController::class,
     'store'
 ])->name('admin.parents.associer.store');
+
+Route::get('/admin/notes', [GradeController::class, 'index'])
+    ->name('admin.notes.index');
+
+Route::post('/admin/notes', [GradeController::class, 'store'])
+    ->name('admin.notes.store');
+
+    
+Route::get('/admin/bulletins', [BulletinController::class, 'index'])
+    ->name('admin.bulletins.index');
+
+Route::post('/admin/bulletins/generer', [BulletinController::class, 'generate'])
+    ->name('admin.bulletins.generate');
+
+Route::post('/admin/bulletins/importer', [BulletinController::class, 'upload'])
+    ->name('admin.bulletins.upload');
+
+Route::post('/admin/bulletins/{bulletin}/valider', [BulletinController::class, 'validateBulletin'])
+    ->name('admin.bulletins.validate');
+
+Route::get('/admin/bulletins/{bulletin}/telecharger', [BulletinController::class, 'download'])
+    ->name('admin.bulletins.download');
+
+Route::post(
+    '/admin/bulletins/preview',
+    [BulletinController::class, 'preview']
+)->name('admin.bulletins.preview');
