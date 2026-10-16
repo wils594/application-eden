@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\BulletinController;
 use App\Http\Controllers\Api\AnnouncementController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\ChatController;
 
 // Inscription et connexion
 Route::post('/register', [AuthController::class, 'register']);
@@ -38,4 +39,7 @@ Route::middleware('auth:sanctum')->group(function () {
         '/annonces',
         [AnnouncementController::class, 'index']
     );
+        // Messagerie privée du parent connecté
+    Route::get('/chat', [ChatController::class, 'index']);
+    Route::post('/chat', [ChatController::class, 'store']);
 });

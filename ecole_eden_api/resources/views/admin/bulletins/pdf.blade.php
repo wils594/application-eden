@@ -118,9 +118,7 @@
             text-align: left;
         }
 
-        .notes th.center {
-            text-align: center;
-        }
+        .notes th.center { text-align: center; }
 
         .notes td {
             padding: 9px 6px;
@@ -129,13 +127,9 @@
             vertical-align: middle;
         }
 
-        .notes td.center {
-            text-align: center;
-        }
+        .notes td.center { text-align: center; }
 
-        .notes tbody tr:nth-child(even) {
-            background: #f8fafc;
-        }
+        .notes tbody tr:nth-child(even) { background: #f8fafc; }
 
         .notes .subject {
             font-weight: bold;
@@ -145,6 +139,16 @@
         .notes .grade {
             font-weight: bold;
             color: #0f1f3d;
+        }
+
+        /* Ligne moyenne pondérée */
+        .notes tfoot td {
+            background: #eff6ff;
+            font-weight: bold;
+            color: #1e40af;
+            border: 1px solid #93c5fd;
+            font-size: 11px;
+            padding: 10px 6px;
         }
 
         /* ── Badges d'appréciation ── */
@@ -158,30 +162,11 @@
             letter-spacing: 0.3px;
         }
 
-        .badge.excellent {
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        .badge.bien {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-
-        .badge.assez-bien {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .badge.passable {
-            background: #fed7aa;
-            color: #9a3412;
-        }
-
-        .badge.insuffisant {
-            background: #fee2e2;
-            color: #991b1b;
-        }
+        .badge.excellent   { background: #dcfce7; color: #166534; }
+        .badge.bien        { background: #dbeafe; color: #1e40af; }
+        .badge.assez-bien  { background: #fef3c7; color: #92400e; }
+        .badge.passable    { background: #fed7aa; color: #9a3412; }
+        .badge.insuffisant { background: #fee2e2; color: #991b1b; }
 
         /* ── Bloc moyenne ── */
         .average {
@@ -190,9 +175,16 @@
             background: #eff6ff;
             border: 2px solid #1e40af;
             border-radius: 6px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        }
+
+        .average-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .average-table td {
+            vertical-align: middle;
+            padding: 0;
         }
 
         .average-label {
@@ -208,6 +200,15 @@
             font-size: 20px;
             font-weight: bold;
             letter-spacing: 0.5px;
+            text-align: right;
+        }
+
+        .average-rank {
+            color: #1e40af;
+            font-size: 11px;
+            font-weight: bold;
+            text-align: right;
+            padding-top: 4px;
         }
 
         /* ── Appréciation générale ── */
@@ -233,8 +234,15 @@
         .remarks-body {
             padding: 14px 12px;
             min-height: 60px;
-            color: #94a3b8;
-            font-size: 10px;
+            color: #334155;
+            font-size: 10.5px;
+        }
+
+        .remarks-auto {
+            font-size: 11px;
+            color: #0f1f3d;
+            font-weight: bold;
+            margin-bottom: 12px;
         }
 
         .remarks-line {
@@ -244,8 +252,33 @@
             height: 10px;
         }
 
-        .remarks-line:last-child {
-            margin-bottom: 0;
+        .remarks-line:last-child { margin-bottom: 0; }
+
+        /* ── Bloc absences ── */
+        .absences {
+            margin-top: 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .absences-header {
+            background: #fef3c7;
+            padding: 8px 12px;
+            font-size: 10.5px;
+            font-weight: bold;
+            color: #92400e;
+            border-bottom: 1px solid #fcd34d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .absences-body {
+            padding: 10px 12px;
+            display: flex;
+            justify-content: space-between;
+            color: #0f1f3d;
+            font-size: 10.5px;
         }
 
         /* ── Signatures ── */
@@ -300,19 +333,28 @@
             letter-spacing: 0.3px;
         }
 
+        .footer .generated {
+            display: block;
+            margin-top: 4px;
+            color: #cbd5e1;
+        }
+
         /* ── Impression ── */
         @media print {
-            .average { break-inside: avoid; }
-            .remarks { break-inside: avoid; }
+            .average    { break-inside: avoid; }
+            .remarks    { break-inside: avoid; }
+            .absences   { break-inside: avoid; }
             .signatures { break-inside: avoid; }
-            tr { break-inside: avoid; }
+            tr          { break-inside: avoid; }
         }
     </style>
 </head>
 
 <body>
 
-    {{-- ── En-tête ── --}}
+    {{-- ═══════════════════════════════════════════
+         EN-TÊTE
+         ═══════════════════════════════════════════ --}}
     <div class="header">
         <div class="school-name">ÉCOLE EDEN</div>
         <div class="subtitle">
@@ -320,13 +362,17 @@
         </div>
     </div>
 
-    {{-- ── Titre ── --}}
+    {{-- ═══════════════════════════════════════════
+         TITRE
+         ═══════════════════════════════════════════ --}}
     <div class="title">
         <div class="title-main">BULLETIN SCOLAIRE</div>
         <span class="title-term">{{ $bulletin->term }}</span>
     </div>
 
-    {{-- ── Infos élève ── --}}
+    {{-- ═══════════════════════════════════════════
+         INFOS ÉLÈVE
+         ═══════════════════════════════════════════ --}}
     <table class="info">
         <tr>
             <td class="label">Nom et prénom</td>
@@ -347,15 +393,17 @@
         </tr>
     </table>
 
-    {{-- ── Tableau des notes ── --}}
+    {{-- ═══════════════════════════════════════════
+         TABLEAU DES NOTES
+         ═══════════════════════════════════════════ --}}
     <table class="notes">
         <thead>
             <tr>
                 <th style="width: 30%;">Matière</th>
                 <th class="center" style="width: 12%;">Note / 20</th>
-                <th class="center" style="width: 14%;">Coefficient</th>
+                <th class="center" style="width: 12%;">Coefficient</th>
                 <th class="center" style="width: 14%;">Points</th>
-                <th class="center" style="width: 30%;">Appréciation</th>
+                <th class="center" style="width: 32%;">Appréciation</th>
             </tr>
         </thead>
         <tbody>
@@ -388,27 +436,98 @@
                 </tr>
             @endforeach
         </tbody>
+
+        {{-- ✅ Ligne récapitulative : total points + total coefficients --}}
+        <tfoot>
+            <tr>
+                <td colspan="2" class="center">
+                    Total points / Total coefficients
+                </td>
+                <td class="center">
+                    {{ $totalCoefficients ?? $grades->sum('coefficient') }}
+                </td>
+                <td class="center">
+                    {{ number_format(
+                        $totalPoints ?? $grades->sum(fn($g) => $g->grade * $g->coefficient),
+                        2
+                    ) }}
+                </td>
+                <td class="center">—</td>
+            </tr>
+        </tfoot>
     </table>
 
-    {{-- ── Moyenne générale ── --}}
+    {{-- ═══════════════════════════════════════════
+         MOYENNE GÉNÉRALE
+         ═══════════════════════════════════════════ --}}
     <div class="average">
-        <span class="average-label">Moyenne générale</span>
-        <span class="average-value">
-            {{ number_format($average, 2) }} / 20
-        </span>
+        <table class="average-table">
+            <tr>
+                <td>
+                    <span class="average-label">Moyenne générale</span>
+                </td>
+                <td>
+                    <span class="average-value">
+                        {{ number_format($average, 2) }} / 20
+                    </span>
+                </td>
+            </tr>
+            @if(isset($rank))
+                <tr>
+                    <td></td>
+                    <td class="average-rank">
+                        Rang : {{ $rank }} / {{ $totalStudents ?? '—' }}
+                    </td>
+                </tr>
+            @endif
+        </table>
     </div>
 
-    {{-- ── Appréciation générale ── --}}
+    {{-- ═══════════════════════════════════════════
+         APPRÉCIATION GÉNÉRALE
+         ═══════════════════════════════════════════ --}}
     <div class="remarks">
         <div class="remarks-header">Appréciation générale</div>
         <div class="remarks-body">
-            <div class="remarks-line"></div>
+
+            {{-- ✅ Appréciation automatique selon la moyenne --}}
+            <div class="remarks-auto">
+                @if ($average >= 16)
+                    Félicitations ! Élève excellent, continue ainsi.
+                @elseif ($average >= 14)
+                    Très bon travail. Élève sérieux et appliqué.
+                @elseif ($average >= 12)
+                    Bon travail dans l'ensemble. Peut encore progresser.
+                @elseif ($average >= 10)
+                    Résultats passables. Des efforts sont attendus.
+                @else
+                    Résultats insuffisants. Un travail sérieux est indispensable.
+                @endif
+            </div>
+
+            {{-- Lignes pour appréciation manuscrite --}}
             <div class="remarks-line"></div>
             <div class="remarks-line"></div>
         </div>
     </div>
 
-    {{-- ── Signatures ── --}}
+    {{-- ═══════════════════════════════════════════
+         ABSENCES (si disponibles)
+         ═══════════════════════════════════════════ --}}
+    @if(isset($absences))
+        <div class="absences">
+            <div class="absences-header">Assiduité</div>
+            <div class="absences-body">
+                <span>Absences justifiées : <strong>{{ $absences['justified'] ?? 0 }}</strong></span>
+                <span>Absences non justifiées : <strong>{{ $absences['unjustified'] ?? 0 }}</strong></span>
+                <span>Retards : <strong>{{ $absences['late'] ?? 0 }}</strong></span>
+            </div>
+        </div>
+    @endif
+
+    {{-- ═══════════════════════════════════════════
+         SIGNATURES
+         ═══════════════════════════════════════════ --}}
     <table class="signatures">
         <tr>
             <td>
@@ -424,9 +543,15 @@
         </tr>
     </table>
 
-    {{-- ── Pied de page ── --}}
+    {{-- ═══════════════════════════════════════════
+         PIED DE PAGE
+         ═══════════════════════════════════════════ --}}
     <div class="footer">
         École Eden — Bulletin scolaire généré par le système de gestion scolaire.
+        <span class="generated">
+            Document généré le {{ now()->format('d/m/Y à H:i') }}
+            — Référence : #{{ $bulletin->id }}
+        </span>
     </div>
 
 </body>

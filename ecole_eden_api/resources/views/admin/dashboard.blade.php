@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Administration | École Eden</title>
+
+    <!-- ═══════════════════════════════════════════
+         BOOTSTRAP 5 (CDN)
+         ═══════════════════════════════════════════ -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
     <style>
         * { box-sizing: border-box; }
 
@@ -104,6 +110,41 @@
 
         .menu a.active svg,
         .menu a:hover svg { opacity: 1; }
+
+        /* ── Bouton déconnexion ── */
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 12px;
+            margin-top: 22px;
+            color: #fca5a5;
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 13.5px;
+            font-weight: 500;
+            background: rgba(220, 38, 38, 0.12);
+            border: 1px solid rgba(220, 38, 38, 0.25);
+            transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+            cursor: pointer;
+            font-family: inherit;
+            width: 100%;
+        }
+
+        .logout-btn svg {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            flex-shrink: 0;
+        }
+
+        .logout-btn:hover {
+            background: #dc2626;
+            color: white;
+            border-color: transparent;
+            transform: translateX(2px);
+            box-shadow: 0 6px 14px rgba(220, 38, 38, 0.35);
+        }
 
         /* ── Main ── */
         .main { flex: 1; min-width: 0; }
@@ -431,6 +472,13 @@
             .menu a svg { width: 15px; height: 15px; }
             .menu a.active, .menu a:hover { transform: none; }
 
+            .logout-btn {
+                margin-top: 12px;
+                padding: 10px 12px;
+                font-size: 12.5px;
+                width: auto;
+            }
+
             .topbar { padding: 14px 16px; }
             .topbar h1 { font-size: 17px; }
             .admin-label { display: none; }
@@ -535,6 +583,16 @@
                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                 </svg>
                 Messagerie
+            </a>
+
+            <!-- 🚪 Bouton déconnexion -->
+            <a href="/admin/logout" class="logout-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                    <polyline points="16 17 21 12 16 7"/>
+                    <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+                Se déconnecter
             </a>
         </nav>
     </aside>
@@ -734,5 +792,10 @@
         </div>
     </main>
 </div>
+
+<!-- ═══════════════════════════════════════════
+     BOOTSTRAP JS (CDN)
+     ═══════════════════════════════════════════ -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
