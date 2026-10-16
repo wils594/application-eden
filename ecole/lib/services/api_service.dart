@@ -29,10 +29,8 @@ class ApiService {
         response.statusCode < 300) {
       final result = responseData;
 
-      // Enregistrer le jeton reçu après la connexion.
       if (result['token'] != null) {
         final prefs = await SharedPreferences.getInstance();
-
         await prefs.setString(
           'auth_token',
           result['token'].toString(),
@@ -80,8 +78,43 @@ class ApiService {
     );
   }
 
-  // Récupérer le PDF d'un bulletin pour le consulter
-  // ou l'enregistrer avec le sélecteur de fichiers.
+  // Envoyer des données avec le jeton d'authentification.
+  static Future<Map<String, dynamic>> postAuthenticated(
+    String endpoint,
+    Map<String, dynamic> data,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    if (token == null || token.isEmpty) {
+      throw Exception(
+        'Vous devez vous connecter à nouveau.',
+      );
+    }
+
+    final response = await http.post(
+      Uri.parse('${AppConstants.apiBaseUrl}$endpoint'),
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(data),
+    );
+
+    final responseData = _decodeJsonResponse(response);
+
+    if (response.statusCode >= 200 &&
+        response.statusCode < 300) {
+      return responseData;
+    }
+
+    throw Exception(
+      responseData['message'] ?? 'Une erreur est survenue.',
+    );
+  }
+
+  // Récupérer le PDF d'un bulletin.
   static Future<Uint8List> fetchBulletinPdf(
     int bulletinId,
   ) async {
@@ -129,7 +162,6 @@ class ApiService {
   }
 
   // Télécharger le bulletin dans un fichier temporaire.
-  // Cette méthode conserve la fonctionnalité existante.
   static Future<String> downloadBulletin(
     int bulletinId,
   ) async {
@@ -148,7 +180,7 @@ class ApiService {
     return file.path;
   }
 
-  // Décoder proprement les réponses JSON de Laravel.
+  // Décoder les réponses JSON de Laravel.
   static Map<String, dynamic> _decodeJsonResponse(
     http.Response response,
   ) {
