@@ -52,9 +52,11 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::post('/admin/eleves', [StudentController::class, 'store'])
         ->name('admin.eleves.store');
 
-    Route::get('/admin/eleves/ajouter', function () {
-        return view('admin.eleves.create');
-    })->name('admin.eleves.create');
+   
+Route::get('/admin/eleves/ajouter', function () {
+    return view('ajouter-eleve');
+})->name('admin.eleves.create');
+
 
     // Classes
     Route::get('/admin/classes', function () {
