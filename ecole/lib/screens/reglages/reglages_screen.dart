@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../core/theme/app_theme.dart'; // ✅ import corrigé
+
 class ReglagesScreen extends StatefulWidget {
   const ReglagesScreen({super.key});
 
@@ -9,24 +11,21 @@ class ReglagesScreen extends StatefulWidget {
 }
 
 class _ReglagesScreenState extends State<ReglagesScreen> {
-  static const Color primary = Color(0xFF2563EB);
-  static const Color primaryDark = Color(0xFF1D4ED8);
-  static const Color textDark = Color(0xFF111827);
-  static const Color textMuted = Color(0xFF6B7280);
-  static const Color background = Color(0xFFF7F9FC);
-  static const Color border = Color(0xFFE5E7EB);
-  static const Color primarySoft = Color(0xFFEFF6FF);
+  // ═════════════════════════════════════════════
+  // 🎨 COULEURS DE MARQUE (identiques Light/Dark)
+  // ═════════════════════════════════════════════
+  static const Color primary = AppTheme.primary;
+  static const Color primaryDark = AppTheme.primaryDark;
 
   bool notificationsEnabled = true;
   bool bulletinNotifications = true;
   bool announcementNotifications = true;
   bool messageNotifications = true;
-  bool darkMode = false;
 
   /// Helper : SVG teinté
   Widget _svg({
     required String asset,
-    Color color = textDark,
+    required Color color,
     double size = 22,
   }) {
     return SvgPicture.asset(
@@ -40,29 +39,28 @@ class _ReglagesScreenState extends State<ReglagesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
         titleSpacing: 20,
         title: Row(
           children: [
-            // Logo dégradé
+            // Logo dégradé bleu
             Container(
               width: 42,
               height: 42,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [primary, primaryDark],
+                  colors: [AppTheme.primary, AppTheme.primaryDark],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: primary.withOpacity(0.25),
+                    color: AppTheme.primary.withOpacity(0.3),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -80,24 +78,24 @@ class _ReglagesScreenState extends State<ReglagesScreen> {
 
             const SizedBox(width: 12),
 
-            const Column(
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   'Réglages',
                   style: TextStyle(
-                    color: textDark,
+                    color: AppTheme.textDark(context),
                     fontSize: 17,
                     fontWeight: FontWeight.bold,
                     letterSpacing: -0.3,
                   ),
                 ),
-                SizedBox(height: 2),
+                const SizedBox(height: 2),
                 Text(
                   'Préférences et sécurité',
                   style: TextStyle(
-                    color: textMuted,
+                    color: AppTheme.textMuted(context),
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
                   ),
@@ -114,7 +112,10 @@ class _ReglagesScreenState extends State<ReglagesScreen> {
             _buildHeader(),
             const SizedBox(height: 28),
 
-            _buildSectionTitle('Notifications'),
+            // ═══════════════════════════════════════
+            // 🔔 Notifications
+            // ═══════════════════════════════════════
+            _buildSectionTitle(context, 'Notifications'),
             _buildCard([
               _buildSwitchTile(
                 iconAsset: 'assets/icons/bell.svg',
@@ -132,7 +133,7 @@ class _ReglagesScreenState extends State<ReglagesScreen> {
                   });
                 },
               ),
-              _buildDivider(),
+              _buildDivider(context),
               _buildSwitchTile(
                 iconAsset: 'assets/icons/document.svg',
                 title: 'Bulletins scolaires',
@@ -146,10 +147,10 @@ class _ReglagesScreenState extends State<ReglagesScreen> {
                       }
                     : null,
               ),
-              _buildDivider(),
+              _buildDivider(context),
               _buildSwitchTile(
                 iconAsset: 'assets/icons/megaphone.svg',
-                title: 'Annonces de l’école',
+                title: 'Annonces de l\u2019école',
                 subtitle: 'Être informé des activités et communiqués',
                 value: announcementNotifications,
                 onChanged: notificationsEnabled
@@ -160,7 +161,7 @@ class _ReglagesScreenState extends State<ReglagesScreen> {
                       }
                     : null,
               ),
-              _buildDivider(),
+              _buildDivider(context),
               _buildSwitchTile(
                 iconAsset: 'assets/icons/chat.svg',
                 title: 'Messages',
@@ -177,31 +178,34 @@ class _ReglagesScreenState extends State<ReglagesScreen> {
             ]),
 
             const SizedBox(height: 24),
-            _buildSectionTitle('Apparence'),
+
+            // ═══════════════════════════════════════
+            // 🌙 Apparence (avec ValueListenableBuilder)
+            // ═══════════════════════════════════════
+            _buildSectionTitle(context, 'Apparence'),
             _buildCard([
-              _buildSwitchTile(
-                iconAsset: 'assets/icons/moon.svg',
-                title: 'Mode sombre',
-                subtitle: 'Préférer une interface sombre',
-                value: darkMode,
-                onChanged: (value) {
-                  setState(() {
-                    darkMode = value;
-                  });
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Le mode sombre sera appliqué à toute '
-                        'l’application dans une prochaine étape.',
-                      ),
-                    ),
+              ValueListenableBuilder<bool>(
+                valueListenable: AppTheme.isDarkMode,
+                builder: (context, isDark, child) {
+                  return _buildSwitchTile(
+                    iconAsset: 'assets/icons/moon.svg',
+                    title: 'Mode sombre',
+                    subtitle: 'Préférer une interface sombre',
+                    value: isDark,
+                    onChanged: (value) async {
+                      await AppTheme.setDarkMode(value);
+                    },
                   );
                 },
               ),
             ]),
 
             const SizedBox(height: 24),
-            _buildSectionTitle('Compte et sécurité'),
+
+            // ═══════════════════════════════════════
+            // 🔒 Compte et sécurité
+            // ═══════════════════════════════════════
+            _buildSectionTitle(context, 'Compte et sécurité'),
             _buildCard([
               _buildActionTile(
                 iconAsset: 'assets/icons/lock.svg',
@@ -211,7 +215,7 @@ class _ReglagesScreenState extends State<ReglagesScreen> {
                   'Le changement de mot de passe sera connecté à Laravel.',
                 ),
               ),
-              _buildDivider(),
+              _buildDivider(context),
               _buildActionTile(
                 iconAsset: 'assets/icons/user.svg',
                 title: 'Informations personnelles',
@@ -220,7 +224,7 @@ class _ReglagesScreenState extends State<ReglagesScreen> {
                   Navigator.pushNamed(context, '/profil');
                 },
               ),
-              _buildDivider(),
+              _buildDivider(context),
               _buildActionTile(
                 iconAsset: 'assets/icons/logout.svg',
                 title: 'Se déconnecter',
@@ -231,12 +235,16 @@ class _ReglagesScreenState extends State<ReglagesScreen> {
             ]),
 
             const SizedBox(height: 24),
-            _buildSectionTitle('À propos'),
+
+            // ═══════════════════════════════════════
+            // ℹ️ À propos
+            // ═══════════════════════════════════════
+            _buildSectionTitle(context, 'À propos'),
             _buildCard([
               _buildActionTile(
                 iconAsset: 'assets/icons/info.svg',
-                title: 'À propos d’École Eden',
-                subtitle: 'Informations sur l’application',
+                title: 'À propos d\u2019École Eden',
+                subtitle: 'Informations sur l\u2019application',
                 onTap: () {
                   showAboutDialog(
                     context: context,
@@ -244,11 +252,11 @@ class _ReglagesScreenState extends State<ReglagesScreen> {
                     applicationVersion: '1.0.0',
                     applicationLegalese:
                         'Application de suivi scolaire et de '
-                        'communication entre les parents et l’école.',
+                        'communication entre les parents et l\u2019école.',
                   );
                 },
               ),
-              _buildDivider(),
+              _buildDivider(context),
               _buildActionTile(
                 iconAsset: 'assets/icons/shield.svg',
                 title: 'Confidentialité',
@@ -260,11 +268,11 @@ class _ReglagesScreenState extends State<ReglagesScreen> {
             ]),
 
             const SizedBox(height: 24),
-            const Center(
+            Center(
               child: Text(
                 'École Eden · Version 1.0.0',
                 style: TextStyle(
-                  color: textMuted,
+                  color: AppTheme.textMuted(context),
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),
@@ -277,19 +285,23 @@ class _ReglagesScreenState extends State<ReglagesScreen> {
     );
   }
 
+  // ═════════════════════════════════════════════
+  // 🎨 HEADER
+  // ═════════════════════════════════════════════
+
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [primary, primaryDark],
+          colors: [AppTheme.primary, AppTheme.primaryDark],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: primary.withOpacity(0.25),
+            color: AppTheme.primary.withOpacity(0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -297,15 +309,14 @@ class _ReglagesScreenState extends State<ReglagesScreen> {
       ),
       child: Row(
         children: [
-          // SVG dans un cercle translucide bordé
           Container(
             width: 58,
             height: 58,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.18),
+              color: Colors.white.withOpacity(0.22),
               shape: BoxShape.circle,
               border: Border.all(
-                color: Colors.white.withOpacity(0.25),
+                color: Colors.white.withOpacity(0.35),
                 width: 1.5,
               ),
             ),
@@ -352,25 +363,28 @@ class _ReglagesScreenState extends State<ReglagesScreen> {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  // ═════════════════════════════════════════════
+  // 🏷️ SECTION TITLE
+  // ═════════════════════════════════════════════
+
+  Widget _buildSectionTitle(BuildContext context, String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         children: [
-          // Petit indicateur bleu vertical
           Container(
             width: 4,
             height: 18,
             decoration: BoxDecoration(
-              color: primary,
+              color: AppTheme.primary,
               borderRadius: BorderRadius.circular(4),
             ),
           ),
           const SizedBox(width: 10),
           Text(
             title,
-            style: const TextStyle(
-              color: textDark,
+            style: TextStyle(
+              color: AppTheme.textDark(context),
               fontSize: 18,
               fontWeight: FontWeight.bold,
               letterSpacing: -0.3,
@@ -381,12 +395,16 @@ class _ReglagesScreenState extends State<ReglagesScreen> {
     );
   }
 
+  // ═════════════════════════════════════════════
+  // 📦 CARD
+  // ═════════════════════════════════════════════
+
   Widget _buildCard(List<Widget> children) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.cardColor(context),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: border),
+        border: Border.all(color: AppTheme.border(context)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.03),
@@ -399,14 +417,18 @@ class _ReglagesScreenState extends State<ReglagesScreen> {
     );
   }
 
-  Widget _buildDivider() {
-    return const Divider(
+  Widget _buildDivider(BuildContext context) {
+    return Divider(
       height: 1,
       thickness: 1,
       indent: 66,
-      color: border,
+      color: AppTheme.border(context),
     );
   }
+
+  // ═════════════════════════════════════════════
+  // 🔀 SWITCH TILE
+  // ═════════════════════════════════════════════
 
   Widget _buildSwitchTile({
     required String iconAsset,
@@ -426,38 +448,55 @@ class _ReglagesScreenState extends State<ReglagesScreen> {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: active ? primarySoft : const Color(0xFFF3F4F6),
+          color: active
+              ? AppTheme.primarySoftColor(context)
+              : (AppTheme.isDark(context)
+                  ? const Color(0xFF2A2A2A)
+                  : const Color(0xFFF3F4F6)),
           borderRadius: BorderRadius.circular(10),
+          border: active
+              ? Border.all(
+                  color: AppTheme.primary.withOpacity(0.15),
+                )
+              : null,
         ),
         padding: const EdgeInsets.all(10),
         child: _svg(
           asset: iconAsset,
-          color: active ? primary : textMuted,
+          color: active
+              ? AppTheme.primaryDark
+              : AppTheme.textMuted(context),
           size: 20,
         ),
       ),
       title: Text(
         title,
         style: TextStyle(
-          color: active ? textDark : textMuted,
+          color: active
+              ? AppTheme.textDark(context)
+              : AppTheme.textMuted(context),
           fontSize: 14,
           fontWeight: FontWeight.w600,
         ),
       ),
       subtitle: Text(
         subtitle,
-        style: const TextStyle(
-          color: textMuted,
+        style: TextStyle(
+          color: AppTheme.textMuted(context),
           fontSize: 12,
           height: 1.4,
           fontWeight: FontWeight.w500,
         ),
       ),
       value: value,
-      activeTrackColor: primary,
+      activeTrackColor: AppTheme.primary,
       onChanged: onChanged,
     );
   }
+
+  // ═════════════════════════════════════════════
+  // ▶️ ACTION TILE
+  // ═════════════════════════════════════════════
 
   Widget _buildActionTile({
     required String iconAsset,
@@ -466,7 +505,7 @@ class _ReglagesScreenState extends State<ReglagesScreen> {
     required VoidCallback onTap,
     Color? color,
   }) {
-    final itemColor = color ?? primary;
+    final itemColor = color ?? AppTheme.primaryDark;
     final isDestructive = color != null;
 
     return ListTile(
@@ -480,8 +519,13 @@ class _ReglagesScreenState extends State<ReglagesScreen> {
         decoration: BoxDecoration(
           color: isDestructive
               ? color.withOpacity(0.1)
-              : primarySoft,
+              : AppTheme.primarySoftColor(context),
           borderRadius: BorderRadius.circular(10),
+          border: isDestructive
+              ? null
+              : Border.all(
+                  color: AppTheme.primary.withOpacity(0.15),
+                ),
         ),
         padding: const EdgeInsets.all(10),
         child: _svg(
@@ -493,33 +537,41 @@ class _ReglagesScreenState extends State<ReglagesScreen> {
       title: Text(
         title,
         style: TextStyle(
-          color: color ?? textDark,
+          color: color ?? AppTheme.textDark(context),
           fontSize: 14,
           fontWeight: FontWeight.w600,
         ),
       ),
       subtitle: Text(
         subtitle,
-        style: const TextStyle(
-          color: textMuted,
+        style: TextStyle(
+          color: AppTheme.textMuted(context),
           fontSize: 12,
           fontWeight: FontWeight.w500,
         ),
       ),
       trailing: _svg(
         asset: 'assets/icons/chevron_right.svg',
-        color: textMuted,
+        color: AppTheme.textMuted(context),
         size: 18,
       ),
       onTap: onTap,
     );
   }
 
+  // ═════════════════════════════════════════════
+  // 💬 MESSAGES
+  // ═════════════════════════════════════════════
+
   void _showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );
   }
+
+  // ═════════════════════════════════════════════
+  // 🚪 CONFIRM LOGOUT
+  // ═════════════════════════════════════════════
 
   void _confirmLogout() {
     showDialog<void>(

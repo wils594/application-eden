@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:pdfrx/pdfrx.dart';
+import 'package:ecole_eden/core/theme/app_theme.dart';
 
 class BulletinPdfScreen extends StatelessWidget {
   final Uint8List pdfBytes;
@@ -14,17 +15,16 @@ class BulletinPdfScreen extends StatelessWidget {
     required this.title,
   });
 
-  // Palette cohérente avec le reste de l'app
+  // ═════════════════════════════════════════════
+  // 🎨 COULEURS DE MARQUE — BLEU
+  // ═════════════════════════════════════════════
   static const Color primary = Color(0xFF2563EB);
   static const Color primaryDark = Color(0xFF1D4ED8);
-  static const Color textDark = Color(0xFF111827);
-  static const Color textMuted = Color(0xFF6B7280);
-  static const Color primarySoft = Color(0xFFEFF6FF);
 
   /// Helper SVG teinté
   Widget _svg({
     required String asset,
-    Color color = textDark,
+    required Color color,
     double size = 22,
   }) {
     return SvgPicture.asset(
@@ -37,11 +37,22 @@ class BulletinPdfScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ═══════════════════════════════════════════
+    // 🎨 COULEURS DYNAMIQUES (light / dark)
+    // ═══════════════════════════════════════════
+    final textDark = AppTheme.textDark(context);
+    final textMuted = AppTheme.textMuted(context);
+    final background = Theme.of(context).scaffoldBackgroundColor;
+    final cardColor = AppTheme.cardColor(context);
+    final primarySoft = AppTheme.primarySoftColor(context);
+    final appBarColor =
+        Theme.of(context).appBarTheme.backgroundColor ?? cardColor;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F5F9),
+      backgroundColor: background,
 
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: appBarColor,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
@@ -59,7 +70,7 @@ class BulletinPdfScreen extends StatelessWidget {
 
         title: Row(
           children: [
-            // Logo dégradé
+            // ── Logo dégradé bleu ──
             Container(
               width: 38,
               height: 38,
@@ -72,7 +83,7 @@ class BulletinPdfScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
                 boxShadow: [
                   BoxShadow(
-                    color: primary.withOpacity(0.25),
+                    color: primary.withOpacity(0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
                   ),
@@ -95,7 +106,7 @@ class BulletinPdfScreen extends StatelessWidget {
                 title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   color: textDark,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -111,7 +122,7 @@ class BulletinPdfScreen extends StatelessWidget {
         pdfBytes,
         sourceName: '$title.pdf',
         params: PdfViewerParams(
-          backgroundColor: const Color(0xFFF3F5F9),
+          backgroundColor: background,
 
           loadingBannerBuilder: (
             context,
@@ -122,7 +133,7 @@ class BulletinPdfScreen extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Double cercle + SVG fichier
+                  // Double cercle bleu + SVG fichier
                   Container(
                     width: 110,
                     height: 110,
@@ -135,11 +146,11 @@ class BulletinPdfScreen extends StatelessWidget {
                       width: 78,
                       height: 78,
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: cardColor,
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: primary.withOpacity(0.15),
+                            color: primary.withOpacity(0.2),
                             blurRadius: 14,
                             offset: const Offset(0, 5),
                           ),
@@ -148,7 +159,7 @@ class BulletinPdfScreen extends StatelessWidget {
                       padding: const EdgeInsets.all(20),
                       child: _svg(
                         asset: 'assets/icons/file-text.svg',
-                        color: primary,
+                        color: primaryDark,
                         size: 38,
                       ),
                     ),
@@ -168,7 +179,7 @@ class BulletinPdfScreen extends StatelessWidget {
 
                   const SizedBox(height: 18),
 
-                  const Text(
+                  Text(
                     'Chargement du bulletin PDF...',
                     style: TextStyle(
                       color: textDark,
@@ -180,7 +191,7 @@ class BulletinPdfScreen extends StatelessWidget {
 
                   const SizedBox(height: 6),
 
-                  const Text(
+                  Text(
                     'Le document sera bientôt affiché.',
                     style: TextStyle(
                       color: textMuted,
@@ -223,7 +234,7 @@ class BulletinPdfScreen extends StatelessWidget {
 
                     const SizedBox(height: 22),
 
-                    const Text(
+                    Text(
                       'Impossible d’afficher le bulletin',
                       textAlign: TextAlign.center,
                       style: TextStyle(
@@ -239,7 +250,7 @@ class BulletinPdfScreen extends StatelessWidget {
                     Text(
                       '$error',
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: textMuted,
                         fontSize: 13.5,
                         height: 1.5,

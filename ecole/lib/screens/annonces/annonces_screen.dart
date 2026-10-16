@@ -3,17 +3,16 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../services/api_service.dart';
+import '../../core/theme/app_theme.dart'; // ✅ import corrigé
 
 class AnnoncesScreen extends StatefulWidget {
   const AnnoncesScreen({super.key});
 
-  static const Color primary = Color(0xFF2563EB);
-  static const Color primaryDark = Color(0xFF1D4ED8);
-  static const Color textDark = Color(0xFF111827);
-  static const Color textMuted = Color(0xFF6B7280);
-  static const Color background = Color(0xFFF0F2F5); // gris Facebook
-  static const Color border = Color(0xFFE5E7EB);
-  static const Color primarySoft = Color(0xFFEFF6FF);
+  // ═════════════════════════════════════════════
+  // 🎨 COULEURS DE MARQUE (identiques Light/Dark)
+  // ═════════════════════════════════════════════
+  static const Color primary = AppTheme.primary;
+  static const Color primaryDark = AppTheme.primaryDark;
 
   @override
   State<AnnoncesScreen> createState() => _AnnoncesScreenState();
@@ -36,7 +35,7 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
 
   Widget _svg({
     required String asset,
-    Color color = AnnoncesScreen.textDark,
+    required Color color,
     double size = 22,
   }) {
     return SvgPicture.asset(
@@ -59,7 +58,7 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
         return const Color(0xFF8B5CF6);
       case 'information':
       default:
-        return AnnoncesScreen.primary;
+        return AppTheme.primary; // ← Bleu par défaut
     }
   }
 
@@ -81,9 +80,8 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AnnoncesScreen.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
@@ -98,24 +96,24 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
               ),
             ),
             const SizedBox(width: 12),
-            const Column(
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   'Annonces',
                   style: TextStyle(
-                    color: AnnoncesScreen.textDark,
+                    color: AppTheme.textDark(context),
                     fontSize: 17,
                     fontWeight: FontWeight.bold,
                     letterSpacing: -0.3,
                   ),
                 ),
-                SizedBox(height: 2),
+                const SizedBox(height: 2),
                 Text(
-                  'Fil de l’école',
+                  'Fil de l\u2019école',
                   style: TextStyle(
-                    color: AnnoncesScreen.textMuted,
+                    color: AppTheme.textMuted(context),
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
                   ),
@@ -136,19 +134,19 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
 
             await future;
           },
-          color: AnnoncesScreen.primary,
+          color: AppTheme.primary,
           child: ListView(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.all(12),
             children: [
               _buildWelcomeCard(),
               const SizedBox(height: 16),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 4),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
                 child: Text(
-                  'Publications de l’école',
+                  'Publications de l\u2019école',
                   style: TextStyle(
-                    color: AnnoncesScreen.textDark,
+                    color: AppTheme.textDark(context),
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     letterSpacing: -0.3,
@@ -196,11 +194,11 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
                 },
               ),
               const SizedBox(height: 16),
-              const Center(
+              Center(
                 child: Text(
                   'Tirez vers le bas pour actualiser',
                   style: TextStyle(
-                    color: AnnoncesScreen.textMuted,
+                    color: AppTheme.textMuted(context),
                     fontSize: 11.5,
                   ),
                 ),
@@ -219,8 +217,8 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [
-            AnnoncesScreen.primary,
-            AnnoncesScreen.primaryDark,
+            AppTheme.primary,
+            AppTheme.primaryDark,
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -228,7 +226,7 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: AnnoncesScreen.primary.withOpacity(0.25),
+            color: AppTheme.primary.withOpacity(0.3),
             blurRadius: 16,
             offset: const Offset(0, 8),
           ),
@@ -240,10 +238,10 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
             width: 46,
             height: 46,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.18),
+              color: Colors.white.withOpacity(0.22),
               shape: BoxShape.circle,
               border: Border.all(
-                color: Colors.white.withOpacity(0.25),
+                color: Colors.white.withOpacity(0.35),
                 width: 1.5,
               ),
             ),
@@ -272,7 +270,7 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
                 ),
                 SizedBox(height: 4),
                 Text(
-                  'Suivez les publications de l’école.',
+                  'Suivez les publications de l\u2019école.',
                   style: TextStyle(
                     color: Colors.white70,
                     fontSize: 12,
@@ -291,7 +289,7 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
     return Container(
       padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.cardColor(context),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -301,14 +299,14 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
             height: 28,
             child: CircularProgressIndicator(
               strokeWidth: 2.5,
-              color: AnnoncesScreen.primary,
+              color: AppTheme.primary,
             ),
           ),
           const SizedBox(height: 14),
-          const Text(
+          Text(
             'Chargement des annonces...',
             style: TextStyle(
-              color: AnnoncesScreen.textMuted,
+              color: AppTheme.textMuted(context),
               fontSize: 13,
               fontWeight: FontWeight.w500,
             ),
@@ -322,7 +320,7 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
     return Container(
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.cardColor(context),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -342,11 +340,11 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
             ),
           ),
           const SizedBox(height: 18),
-          const Text(
+          Text(
             'Impossible de charger les annonces',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: AnnoncesScreen.textDark,
+              color: AppTheme.textDark(context),
               fontSize: 15,
               fontWeight: FontWeight.bold,
               letterSpacing: -0.3,
@@ -358,8 +356,8 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
             textAlign: TextAlign.center,
             maxLines: 4,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: AnnoncesScreen.textMuted,
+            style: TextStyle(
+              color: AppTheme.textMuted(context),
               fontSize: 12.5,
               height: 1.5,
               fontWeight: FontWeight.w500,
@@ -413,15 +411,15 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
             padding: const EdgeInsets.all(12),
             child: Row(
               children: [
-                // Avatar
+                // Avatar (bleu)
                 Container(
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       colors: [
-                        AnnoncesScreen.primary,
-                        AnnoncesScreen.primaryDark,
+                        AppTheme.primary,
+                        AppTheme.primaryDark,
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -429,7 +427,7 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: AnnoncesScreen.primary.withOpacity(0.25),
+                        color: AppTheme.primary.withOpacity(0.3),
                         blurRadius: 8,
                         offset: const Offset(0, 3),
                       ),
@@ -453,10 +451,10 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'École Eden',
                         style: TextStyle(
-                          color: AnnoncesScreen.textDark,
+                          color: AppTheme.textDark(context),
                           fontSize: 14.5,
                           fontWeight: FontWeight.bold,
                           letterSpacing: -0.2,
@@ -467,8 +465,8 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
                         children: [
                           Text(
                             dateText,
-                            style: const TextStyle(
-                              color: AnnoncesScreen.textMuted,
+                            style: TextStyle(
+                              color: AppTheme.textMuted(context),
                               fontSize: 11.5,
                               fontWeight: FontWeight.w500,
                             ),
@@ -477,8 +475,8 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
                           Container(
                             width: 3,
                             height: 3,
-                            decoration: const BoxDecoration(
-                              color: AnnoncesScreen.textMuted,
+                            decoration: BoxDecoration(
+                              color: AppTheme.textMuted(context),
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -511,7 +509,7 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
                 // Menu (3 points)
                 _svg(
                   asset: 'assets/icons/more.svg',
-                  color: AnnoncesScreen.textMuted,
+                  color: AppTheme.textMuted(context),
                   size: 20,
                 ),
               ],
@@ -529,8 +527,8 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
                 // Titre en gras
                 Text(
                   title,
-                  style: const TextStyle(
-                    color: AnnoncesScreen.textDark,
+                  style: TextStyle(
+                    color: AppTheme.textDark(context),
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
                     height: 1.35,
@@ -543,8 +541,8 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
                   const SizedBox(height: 8),
                   Text(
                     content,
-                    style: const TextStyle(
-                      color: Color(0xFF050505),
+                    style: TextStyle(
+                      color: AppTheme.textDark(context),
                       fontSize: 14,
                       height: 1.55,
                       fontWeight: FontWeight.w400,
@@ -564,7 +562,7 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
               child: Container(
                 width: double.infinity,
                 constraints: const BoxConstraints(maxHeight: 320),
-                color: AnnoncesScreen.primarySoft,
+                color: AppTheme.primarySoftColor(context),
                 child: Image.network(
                   attachmentUrl,
                   fit: BoxFit.cover,
@@ -572,14 +570,14 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
                     if (progress == null) return child;
                     return Container(
                       height: 200,
-                      color: AnnoncesScreen.primarySoft,
+                      color: AppTheme.primarySoftColor(context),
                       alignment: Alignment.center,
                       child: const SizedBox(
                         width: 26,
                         height: 26,
                         child: CircularProgressIndicator(
                           strokeWidth: 2.5,
-                          color: AnnoncesScreen.primary,
+                          color: AppTheme.primary,
                         ),
                       ),
                     );
@@ -587,21 +585,21 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
                   errorBuilder: (context, error, stackTrace) {
                     return Container(
                       height: 120,
-                      color: AnnoncesScreen.primarySoft,
+                      color: AppTheme.primarySoftColor(context),
                       alignment: Alignment.center,
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           _svg(
                             asset: 'assets/icons/file-text.svg',
-                            color: AnnoncesScreen.primary,
+                            color: AppTheme.primaryDark,
                             size: 28,
                           ),
                           const SizedBox(height: 6),
-                          const Text(
+                          Text(
                             'Image non disponible',
                             style: TextStyle(
-                              color: AnnoncesScreen.textMuted,
+                              color: AppTheme.textMuted(context),
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
                             ),
@@ -632,8 +630,8 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
               padding: const EdgeInsets.all(12),
               child: _buildAttachment(
                 url: attachmentUrl,
-                iconColor: AnnoncesScreen.primary,
-                iconBg: AnnoncesScreen.primarySoft,
+                iconColor: AppTheme.primaryDark,
+                iconBg: AppTheme.primarySoftColor(context),
                 title: 'Fichier joint',
               ),
             ),
@@ -641,7 +639,7 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
           // ═════════════════════════════════════════
           // 👍 BARRE D'ACTIONS (style Facebook)
           // ═════════════════════════════════════════
-          const Divider(height: 1, color: Color(0xFFE5E7EB)),
+          Divider(height: 1, color: AppTheme.border(context)),
 
           Padding(
             padding: const EdgeInsets.symmetric(
@@ -653,7 +651,7 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
                 Expanded(
                   child: _buildActionButton(
                     iconAsset: 'assets/icons/thumbs-up.svg',
-                    label: 'J’aime',
+                    label: 'J\u2019aime',
                   ),
                 ),
                 Expanded(
@@ -681,6 +679,10 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
     required String iconAsset,
     required String label,
   }) {
+    final actionColor = AppTheme.isDark(context)
+        ? const Color(0xFFB0B3B8)
+        : const Color(0xFF65676B);
+
     return Material(
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(8),
@@ -697,14 +699,14 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
             children: [
               _svg(
                 asset: iconAsset,
-                color: const Color(0xFF65676B),
+                color: actionColor,
                 size: 18,
               ),
               const SizedBox(width: 6),
               Text(
                 label,
-                style: const TextStyle(
-                  color: Color(0xFF65676B),
+                style: TextStyle(
+                  color: actionColor,
                   fontSize: 12.5,
                   fontWeight: FontWeight.w600,
                 ),
@@ -732,9 +734,9 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
         child: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: const Color(0xFFF0F2F5),
+            color: Theme.of(context).scaffoldBackgroundColor,
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: AnnoncesScreen.border),
+            border: Border.all(color: AppTheme.border(context)),
           ),
           child: Row(
             children: [
@@ -759,17 +761,17 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
-                        color: AnnoncesScreen.textDark,
+                      style: TextStyle(
+                        color: AppTheme.textDark(context),
                         fontSize: 13.5,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: 2),
-                    const Text(
+                    Text(
                       'Appuyez pour ouvrir',
                       style: TextStyle(
-                        color: AnnoncesScreen.textMuted,
+                        color: AppTheme.textMuted(context),
                         fontSize: 11.5,
                         fontWeight: FontWeight.w500,
                       ),
@@ -779,7 +781,7 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
               ),
               _svg(
                 asset: 'assets/icons/chevron_right.svg',
-                color: AnnoncesScreen.textMuted,
+                color: AppTheme.textMuted(context),
                 size: 18,
               ),
             ],
@@ -801,7 +803,7 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
     if (!ok && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Impossible d’ouvrir la pièce jointe.'),
+          content: Text('Impossible d\u2019ouvrir la pièce jointe.'),
         ),
       );
     }
@@ -835,7 +837,7 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
     final diff = now.difference(local);
 
     // Date relative style Facebook
-    if (diff.inMinutes < 1) return 'À l’instant';
+    if (diff.inMinutes < 1) return 'À l\u2019instant';
     if (diff.inMinutes < 60) return 'Il y a ${diff.inMinutes} min';
     if (diff.inHours < 24) return 'Il y a ${diff.inHours} h';
     if (diff.inDays < 7) return 'Il y a ${diff.inDays} j';
@@ -855,7 +857,7 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
         vertical: 32,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.cardColor(context),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -863,34 +865,34 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
           Container(
             width: 80,
             height: 80,
-            decoration: const BoxDecoration(
-              color: AnnoncesScreen.primarySoft,
+            decoration: BoxDecoration(
+              color: AppTheme.primarySoftColor(context),
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,
             child: _svg(
               asset: 'assets/icons/bell_off.svg',
-              color: AnnoncesScreen.primary,
+              color: AppTheme.primaryDark,
               size: 30,
             ),
           ),
           const SizedBox(height: 18),
-          const Text(
+          Text(
             'Aucune annonce pour le moment',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: AnnoncesScreen.textDark,
+              color: AppTheme.textDark(context),
               fontSize: 15,
               fontWeight: FontWeight.bold,
               letterSpacing: -0.3,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Les prochains communiqués apparaîtront ici.',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: AnnoncesScreen.textMuted,
+              color: AppTheme.textMuted(context),
               fontSize: 12.5,
               height: 1.5,
               fontWeight: FontWeight.w500,
@@ -903,7 +905,7 @@ class _AnnoncesScreenState extends State<AnnoncesScreen> {
 }
 
 // ═════════════════════════════════════════════════
-// 🌟 LOGO GLOW
+// 🌟 LOGO GLOW BLEU
 // ═════════════════════════════════════════════════
 
 class _GlowingMegaphoneLogo extends StatefulWidget {
@@ -946,15 +948,15 @@ class _GlowingMegaphoneLogoState extends State<_GlowingMegaphoneLogo>
       child: AnimatedBuilder(
         animation: _controller,
         builder: (context, child) {
-          final glow = 0.15 + (_controller.value * 0.15);
+          final glow = 0.2 + (_controller.value * 0.2);
           return Container(
             width: 42,
             height: 42,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 colors: [
-                  AnnoncesScreen.primary,
-                  AnnoncesScreen.primaryDark,
+                  AppTheme.primary,
+                  AppTheme.primaryDark,
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -962,7 +964,7 @@ class _GlowingMegaphoneLogoState extends State<_GlowingMegaphoneLogo>
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: AnnoncesScreen.primary.withOpacity(glow),
+                  color: AppTheme.primary.withOpacity(glow),
                   blurRadius: 14 + (_controller.value * 10),
                   spreadRadius: _controller.value * 1.5,
                 ),
@@ -978,7 +980,7 @@ class _GlowingMegaphoneLogoState extends State<_GlowingMegaphoneLogo>
 }
 
 // ═════════════════════════════════════════════════
-// 🔄 BOUTON RÉESSAYER
+// 🔄 BOUTON RÉESSAYER BLEU
 // ═════════════════════════════════════════════════
 
 class _RetryButton extends StatefulWidget {
@@ -1013,11 +1015,11 @@ class _RetryButtonState extends State<_RetryButton> {
             vertical: 11,
           ),
           decoration: BoxDecoration(
-            color: AnnoncesScreen.primary,
+            color: AppTheme.primary,
             borderRadius: BorderRadius.circular(10),
             boxShadow: [
               BoxShadow(
-                color: AnnoncesScreen.primary.withOpacity(0.3),
+                color: AppTheme.primary.withOpacity(0.35),
                 blurRadius: 12,
                 offset: const Offset(0, 5),
               ),
@@ -1045,7 +1047,7 @@ class _RetryButtonState extends State<_RetryButton> {
 }
 
 // ═════════════════════════════════════════════════
-// 📘 CARTE POST PRESSABLE (style Facebook)
+// 📘 CARTE POST PRESSABLE
 // ═════════════════════════════════════════════════
 
 class _PressablePostCard extends StatefulWidget {
@@ -1070,11 +1072,18 @@ class _PressablePostCardState extends State<_PressablePostCard> {
         curve: Curves.easeOutCubic,
         margin: const EdgeInsets.only(bottom: 10),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.cardColor(context),
           borderRadius: BorderRadius.circular(12),
+          border: _isHovered
+              ? Border.all(
+                  color: AppTheme.primary.withOpacity(0.2),
+                )
+              : null,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(_isHovered ? 0.08 : 0.04),
+              color: _isHovered
+                  ? AppTheme.primary.withOpacity(0.1)
+                  : Colors.black.withOpacity(0.04),
               blurRadius: _isHovered ? 16 : 8,
               offset: Offset(0, _isHovered ? 4 : 2),
             ),

@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:ecole_eden/core/theme/app_theme.dart';
 
 class HomeScreen extends StatefulWidget {
   final String parentName;
@@ -19,15 +20,12 @@ class _HomeScreenState extends State<HomeScreen>
     with TickerProviderStateMixin {
   int _selectedIndex = 0;
 
-  // Palette
+  // ═════════════════════════════════════════════
+  // 🎨 COULEURS DE MARQUE — BLEU
+  // ═════════════════════════════════════════════
   static const Color primary = Color(0xFF2563EB);
   static const Color primaryDark = Color(0xFF1D4ED8);
-  static const Color textDark = Color(0xFF111827);
-  static const Color textMuted = Color(0xFF6B7280);
-  static const Color textBody = Color(0xFF4B5563);
-  static const Color background = Color(0xFFF7F9FC);
-  static const Color border = Color(0xFFE5E7EB);
-  static const Color primarySoft = Color(0xFFEFF6FF);
+  static const Color accent = Color(0xFFBFDBFE);
 
   final List<_MenuItem> _menuItems = const [
     _MenuItem(title: 'Accueil', iconAsset: 'assets/icons/home.svg'),
@@ -39,13 +37,17 @@ class _HomeScreenState extends State<HomeScreen>
     _MenuItem(title: 'Réglages', iconAsset: 'assets/icons/settings.svg'),
   ];
 
-  Widget _svg(String asset, {Color? color, double size = 22}) {
+  Widget _svg(
+    String asset, {
+    Color? color,
+    double size = 22,
+  }) {
     return SvgPicture.asset(
       asset,
       width: size,
       height: size,
       colorFilter: ColorFilter.mode(
-        color ?? textDark,
+        color ?? Colors.black,
         BlendMode.srcIn,
       ),
     );
@@ -53,26 +55,38 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
+    final textDark = AppTheme.textDark(context);
+    final textMuted = AppTheme.textMuted(context);
+    final textBody = AppTheme.textMuted(context);
+    final background = Theme.of(context).scaffoldBackgroundColor;
+    final cardColor = AppTheme.cardColor(context);
+    final border = AppTheme.border(context);
+    final primarySoft = AppTheme.primarySoftColor(context);
+    final appBarColor =
+        Theme.of(context).appBarTheme.backgroundColor ?? cardColor;
+
     return Scaffold(
       backgroundColor: background,
 
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: appBarColor,
         elevation: 0,
         scrolledUnderElevation: 0,
         automaticallyImplyLeading: false,
         titleSpacing: 20,
         title: Row(
           children: [
-            // 🌟 Logo avec glow pulsant
             _GlowingLogo(
-              svgBuilder: (color, size) =>
-                  _svg('assets/icons/school.svg', color: color, size: size),
+              svgBuilder: (color, size) => _svg(
+                'assets/icons/school.svg',
+                color: color,
+                size: size,
+              ),
             ),
 
             const SizedBox(width: 12),
 
-            const Column(
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -101,9 +115,13 @@ class _HomeScreenState extends State<HomeScreen>
           Padding(
             padding: const EdgeInsets.only(right: 12),
             child: _AnimatedBellButton(
-              svgBuilder: (color, size) =>
-                  _svg('assets/icons/bell.svg', color: color, size: size),
+              svgBuilder: (color, size) => _svg(
+                'assets/icons/bell.svg',
+                color: color,
+                size: size,
+              ),
               onTap: _showNotifications,
+              iconColor: textDark,
             ),
           ),
         ],
@@ -126,26 +144,63 @@ class _HomeScreenState extends State<HomeScreen>
         },
         child: KeyedSubtree(
           key: ValueKey(_selectedIndex),
-          child: _buildCurrentPage(),
+          child: _buildCurrentPage(
+            textDark: textDark,
+            textMuted: textMuted,
+            textBody: textBody,
+            cardColor: cardColor,
+            border: border,
+            primarySoft: primarySoft,
+          ),
         ),
       ),
 
-      bottomNavigationBar: _buildBottomMenu(),
+      bottomNavigationBar: _buildBottomMenu(
+        textDark: textDark,
+        textMuted: textMuted,
+        cardColor: cardColor,
+        border: border,
+        primarySoft: primarySoft,
+      ),
     );
   }
 
-  Widget _buildCurrentPage() {
+  Widget _buildCurrentPage({
+    required Color textDark,
+    required Color textMuted,
+    required Color textBody,
+    required Color cardColor,
+    required Color border,
+    required Color primarySoft,
+  }) {
     if (_selectedIndex == 0) {
-      return _buildHomePage();
+      return _buildHomePage(
+        textDark: textDark,
+        textMuted: textMuted,
+        textBody: textBody,
+        cardColor: cardColor,
+        border: border,
+        primarySoft: primarySoft,
+      );
     }
 
     return _buildComingSoonPage(
       _menuItems[_selectedIndex].title,
       _menuItems[_selectedIndex].iconAsset,
+      textDark: textDark,
+      textMuted: textMuted,
+      primarySoft: primarySoft,
     );
   }
 
-  Widget _buildHomePage() {
+  Widget _buildHomePage({
+    required Color textDark,
+    required Color textMuted,
+    required Color textBody,
+    required Color cardColor,
+    required Color border,
+    required Color primarySoft,
+  }) {
     return SafeArea(
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 25),
@@ -156,7 +211,7 @@ class _HomeScreenState extends State<HomeScreen>
               delay: 0,
               child: Text(
                 'Bonjour, ${widget.parentName} !',
-                style: const TextStyle(
+                style: TextStyle(
                   color: textDark,
                   fontSize: 27,
                   fontWeight: FontWeight.bold,
@@ -169,7 +224,7 @@ class _HomeScreenState extends State<HomeScreen>
 
             _FadeSlideIn(
               delay: 80,
-              child: const Text(
+              child: Text(
                 'Ravi de vous revoir dans votre espace parent.',
                 style: TextStyle(
                   color: textBody,
@@ -184,7 +239,7 @@ class _HomeScreenState extends State<HomeScreen>
 
             _FadeSlideIn(
               delay: 160,
-              child: const Text(
+              child: Text(
                 'Nous sommes là pour vous accompagner et vous permettre de suivre facilement la vie scolaire de vos enfants.',
                 style: TextStyle(
                   color: textMuted,
@@ -196,24 +251,25 @@ class _HomeScreenState extends State<HomeScreen>
 
             const SizedBox(height: 25),
 
-            // 🌈 Carte bienvenue animée (dégradé + shimmer + particules)
             _FadeSlideIn(
               delay: 240,
               child: _AnimatedWelcomeCard(
-                svgBuilder: (color, size) =>
-                    _svg('assets/icons/school.svg', color: color, size: size),
+                svgBuilder: (color, size) => _svg(
+                  'assets/icons/school.svg',
+                  color: color,
+                  size: size,
+                ),
               ),
             ),
 
             const SizedBox(height: 28),
 
-            // Section avec compteur animé
             _FadeSlideIn(
               delay: 320,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Votre suivi scolaire',
                     style: TextStyle(
                       color: textDark,
@@ -230,11 +286,14 @@ class _HomeScreenState extends State<HomeScreen>
                     decoration: BoxDecoration(
                       color: primarySoft,
                       borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: primary.withOpacity(0.3),
+                      ),
                     ),
                     child: const _AnimatedCounter(
                       value: 4,
                       style: TextStyle(
-                        color: primary,
+                        color: primaryDark,
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                       ),
@@ -246,7 +305,6 @@ class _HomeScreenState extends State<HomeScreen>
 
             const SizedBox(height: 15),
 
-            // 🎨 Cartes info avec hover magnétique + ripple
             Row(
               children: [
                 Expanded(
@@ -256,9 +314,13 @@ class _HomeScreenState extends State<HomeScreen>
                       iconAsset: 'assets/icons/family.svg',
                       title: 'Mes enfants',
                       subtitle: 'Suivre leur scolarité',
-                      accentColor: const Color(0xFF2563EB),
+                      accentColor: primary,
                       svgBuilder: _svg,
                       onTap: () {},
+                      cardColor: cardColor,
+                      textDark: textDark,
+                      textMuted: textMuted,
+                      borderColor: border,
                     ),
                   ),
                 ),
@@ -273,6 +335,10 @@ class _HomeScreenState extends State<HomeScreen>
                       accentColor: const Color(0xFFF59E0B),
                       svgBuilder: _svg,
                       onTap: () {},
+                      cardColor: cardColor,
+                      textDark: textDark,
+                      textMuted: textMuted,
+                      borderColor: border,
                     ),
                   ),
                 ),
@@ -293,6 +359,10 @@ class _HomeScreenState extends State<HomeScreen>
                       accentColor: const Color(0xFF8B5CF6),
                       svgBuilder: _svg,
                       onTap: () {},
+                      cardColor: cardColor,
+                      textDark: textDark,
+                      textMuted: textMuted,
+                      borderColor: border,
                     ),
                   ),
                 ),
@@ -307,6 +377,10 @@ class _HomeScreenState extends State<HomeScreen>
                       accentColor: const Color(0xFF10B981),
                       svgBuilder: _svg,
                       onTap: () {},
+                      cardColor: cardColor,
+                      textDark: textDark,
+                      textMuted: textMuted,
+                      borderColor: border,
                     ),
                   ),
                 ),
@@ -326,10 +400,10 @@ class _HomeScreenState extends State<HomeScreen>
                     width: double.infinity,
                     padding: const EdgeInsets.all(18),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.7),
+                      color: cardColor.withOpacity(0.7),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: Colors.white.withOpacity(0.8),
+                        color: primary.withOpacity(0.2),
                         width: 1.5,
                       ),
                       boxShadow: [
@@ -348,8 +422,8 @@ class _HomeScreenState extends State<HomeScreen>
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
-                                primary.withOpacity(0.15),
-                                primary.withOpacity(0.08),
+                                primary.withOpacity(0.2),
+                                primary.withOpacity(0.1),
                               ],
                             ),
                             borderRadius: BorderRadius.circular(12),
@@ -357,12 +431,12 @@ class _HomeScreenState extends State<HomeScreen>
                           padding: const EdgeInsets.all(10),
                           child: _svg(
                             'assets/icons/info.svg',
-                            color: primary,
+                            color: primaryDark,
                             size: 22,
                           ),
                         ),
                         const SizedBox(width: 13),
-                        const Expanded(
+                        Expanded(
                           child: Text(
                             'Les informations importantes de l’école apparaîtront ici.',
                             style: TextStyle(
@@ -385,7 +459,13 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget _buildComingSoonPage(String title, String iconAsset) {
+  Widget _buildComingSoonPage(
+    String title,
+    String iconAsset, {
+    required Color textDark,
+    required Color textMuted,
+    required Color primarySoft,
+  }) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(30),
@@ -411,6 +491,9 @@ class _HomeScreenState extends State<HomeScreen>
                 decoration: BoxDecoration(
                   color: primarySoft,
                   borderRadius: BorderRadius.circular(26),
+                  border: Border.all(
+                    color: primary.withOpacity(0.3),
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: primary.withOpacity(0.2),
@@ -420,13 +503,13 @@ class _HomeScreenState extends State<HomeScreen>
                   ],
                 ),
                 padding: const EdgeInsets.all(24),
-                child: _svg(iconAsset, color: primary, size: 40),
+                child: _svg(iconAsset, color: primaryDark, size: 40),
               ),
             ),
             const SizedBox(height: 22),
             Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 color: textDark,
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
@@ -434,7 +517,7 @@ class _HomeScreenState extends State<HomeScreen>
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Cette fonctionnalité sera bientôt disponible.',
               textAlign: TextAlign.center,
               style: TextStyle(
@@ -449,15 +532,21 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget _buildBottomMenu() {
+  Widget _buildBottomMenu({
+    required Color textDark,
+    required Color textMuted,
+    required Color cardColor,
+    required Color border,
+    required Color primarySoft,
+  }) {
     return Container(
       padding: const EdgeInsets.only(top: 8, bottom: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: const Border(top: BorderSide(color: border)),
+        color: cardColor,
+        border: Border(top: BorderSide(color: border)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withOpacity(0.08),
             blurRadius: 10,
             offset: const Offset(0, -3),
           ),
@@ -486,6 +575,9 @@ class _HomeScreenState extends State<HomeScreen>
                     child: _AnimatedMenuItem(
                       selected: selected,
                       title: item.title,
+                      textDark: textDark,
+                      textMuted: textMuted,
+                      primarySoft: primarySoft,
                       svgBuilder: (color, size) =>
                           _svg(item.iconAsset, color: color, size: size),
                       onTap: () {
@@ -525,9 +617,14 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   void _showNotifications() {
+    final cardColor = AppTheme.cardColor(context);
+    final textDark = AppTheme.textDark(context);
+    final textMuted = AppTheme.textMuted(context);
+    final primarySoft = AppTheme.primarySoftColor(context);
+
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: cardColor,
       showDragHandle: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -557,17 +654,20 @@ class _HomeScreenState extends State<HomeScreen>
                       decoration: BoxDecoration(
                         color: primarySoft,
                         borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: primary.withOpacity(0.3),
+                        ),
                       ),
                       padding: const EdgeInsets.all(10),
                       child: _svg(
                         'assets/icons/bell.svg',
-                        color: primary,
+                        color: primaryDark,
                         size: 20,
                       ),
                     ),
                   ),
                   const SizedBox(width: 12),
-                  const Text(
+                  Text(
                     'Notifications',
                     style: TextStyle(
                       fontSize: 20,
@@ -586,7 +686,7 @@ class _HomeScreenState extends State<HomeScreen>
                       width: 64,
                       height: 64,
                       decoration: BoxDecoration(
-                        color: background,
+                        color: textMuted.withOpacity(0.1),
                         shape: BoxShape.circle,
                       ),
                       padding: const EdgeInsets.all(20),
@@ -597,7 +697,7 @@ class _HomeScreenState extends State<HomeScreen>
                       ),
                     ),
                     const SizedBox(height: 14),
-                    const Text(
+                    Text(
                       'Aucune nouvelle notification.',
                       style: TextStyle(
                         color: textMuted,
@@ -617,7 +717,7 @@ class _HomeScreenState extends State<HomeScreen>
 }
 
 // ═════════════════════════════════════════════════
-// 🌟 LOGO AVEC GLOW PULSANT
+// 🌟 LOGO AVEC GLOW PULSANT (BLEU)
 // ═════════════════════════════════════════════════
 
 class _GlowingLogo extends StatefulWidget {
@@ -660,7 +760,7 @@ class _GlowingLogoState extends State<_GlowingLogo>
       child: AnimatedBuilder(
         animation: _controller,
         builder: (context, child) {
-          final glow = 0.15 + (_controller.value * 0.15);
+          final glow = 0.2 + (_controller.value * 0.2);
           return Container(
             width: 42,
             height: 42,
@@ -692,7 +792,7 @@ class _GlowingLogoState extends State<_GlowingLogo>
 }
 
 // ═════════════════════════════════════════════════
-// 🌈 CARTE BIENVENUE ANIMÉE (dégradé + shimmer + particules)
+// 🌈 CARTE BIENVENUE ANIMÉE (BLEU)
 // ═════════════════════════════════════════════════
 
 class _AnimatedWelcomeCard extends StatefulWidget {
@@ -742,7 +842,7 @@ class _AnimatedWelcomeCardState extends State<_AnimatedWelcomeCard>
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: _HomeScreenState.primary.withOpacity(0.3),
+                color: _HomeScreenState.primary.withOpacity(0.35),
                 blurRadius: 25,
                 offset: const Offset(0, 12),
               ),
@@ -752,7 +852,6 @@ class _AnimatedWelcomeCardState extends State<_AnimatedWelcomeCard>
             borderRadius: BorderRadius.circular(20),
             child: Stack(
               children: [
-                // ── Fond dégradé animé ──
                 Positioned.fill(
                   child: AnimatedBuilder(
                     animation: _gradientController,
@@ -762,10 +861,10 @@ class _AnimatedWelcomeCardState extends State<_AnimatedWelcomeCard>
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: const [
-                              Color(0xFF2563EB),
-                              Color(0xFF1D4ED8),
-                              Color(0xFF7C3AED),
-                              Color(0xFF2563EB),
+                              Color(0xFF2563EB), // Bleu
+                              Color(0xFF1D4ED8), // Bleu foncé
+                              Color(0xFF1E40AF), // Bleu nuit
+                              Color(0xFF2563EB), // Retour bleu
                             ],
                             begin: Alignment(
                               math.cos(t * 2 * math.pi),
@@ -782,10 +881,8 @@ class _AnimatedWelcomeCardState extends State<_AnimatedWelcomeCard>
                   ),
                 ),
 
-                // ── Particules flottantes ──
                 ..._buildParticles(),
 
-                // ── Contenu ──
                 Padding(
                   padding: const EdgeInsets.all(22),
                   child: Row(
@@ -834,7 +931,6 @@ class _AnimatedWelcomeCardState extends State<_AnimatedWelcomeCard>
                   ),
                 ),
 
-                // ── Shimmer brillant ──
                 Positioned.fill(
                   child: IgnorePointer(
                     child: AnimatedBuilder(
@@ -853,7 +949,7 @@ class _AnimatedWelcomeCardState extends State<_AnimatedWelcomeCard>
                               ),
                               colors: [
                                 Colors.white.withOpacity(0),
-                                Colors.white.withOpacity(0.25),
+                                Colors.white.withOpacity(0.3),
                                 Colors.white.withOpacity(0),
                               ],
                               stops: const [0.35, 0.5, 0.65],
@@ -874,7 +970,7 @@ class _AnimatedWelcomeCardState extends State<_AnimatedWelcomeCard>
 
   List<Widget> _buildParticles() {
     final particles = <Widget>[];
-    final rng = math.Random(42); // seed fixe pour stabilité
+    final rng = math.Random(42);
 
     for (int i = 0; i < 8; i++) {
       final startX = rng.nextDouble();
@@ -1006,6 +1102,10 @@ class _HoverableInfoCard extends StatefulWidget {
   final Color accentColor;
   final VoidCallback onTap;
   final Widget Function(String asset, {Color? color, double size}) svgBuilder;
+  final Color cardColor;
+  final Color textDark;
+  final Color textMuted;
+  final Color borderColor;
 
   const _HoverableInfoCard({
     required this.iconAsset,
@@ -1014,6 +1114,10 @@ class _HoverableInfoCard extends StatefulWidget {
     required this.accentColor,
     required this.onTap,
     required this.svgBuilder,
+    required this.cardColor,
+    required this.textDark,
+    required this.textMuted,
+    required this.borderColor,
   });
 
   @override
@@ -1026,7 +1130,6 @@ class _HoverableInfoCardState extends State<_HoverableInfoCard>
   bool _isPressed = false;
   Offset _mousePosition = Offset.zero;
 
-  // Animation de ripple
   late AnimationController _rippleController;
   Offset _ripplePosition = Offset.zero;
 
@@ -1057,7 +1160,6 @@ class _HoverableInfoCardState extends State<_HoverableInfoCard>
   Widget build(BuildContext context) {
     final active = _isHovered || _isPressed;
 
-    // Magnétisme : la carte suit légèrement le curseur
     final tiltX = _isHovered
         ? ((_mousePosition.dx / 200) - 0.5) * 0.06
         : 0.0;
@@ -1095,13 +1197,17 @@ class _HoverableInfoCardState extends State<_HoverableInfoCard>
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: active
-                    ? Color.lerp(Colors.white, widget.accentColor, 0.05)
-                    : Colors.white,
+                    ? Color.lerp(
+                        widget.cardColor,
+                        widget.accentColor,
+                        0.08,
+                      )
+                    : widget.cardColor,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: active
                       ? widget.accentColor
-                      : const Color(0xFFE5E7EB),
+                      : widget.borderColor,
                   width: active ? 1.5 : 1.0,
                 ),
                 boxShadow: [
@@ -1116,7 +1222,6 @@ class _HoverableInfoCardState extends State<_HoverableInfoCard>
               ),
               child: Stack(
                 children: [
-                  // ── Ripple au tap ──
                   Positioned.fill(
                     child: IgnorePointer(
                       child: AnimatedBuilder(
@@ -1152,7 +1257,6 @@ class _HoverableInfoCardState extends State<_HoverableInfoCard>
                     ),
                   ),
 
-                  // ── Contenu ──
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -1170,7 +1274,7 @@ class _HoverableInfoCardState extends State<_HoverableInfoCard>
                               height: 44,
                               decoration: BoxDecoration(
                                 color: widget.accentColor
-                                    .withOpacity(active ? 0.2 : 0.1),
+                                    .withOpacity(active ? 0.25 : 0.15),
                                 borderRadius: BorderRadius.circular(12),
                                 boxShadow: active
                                     ? [
@@ -1205,7 +1309,7 @@ class _HoverableInfoCardState extends State<_HoverableInfoCard>
                                 height: 26,
                                 decoration: BoxDecoration(
                                   color:
-                                      widget.accentColor.withOpacity(0.15),
+                                      widget.accentColor.withOpacity(0.2),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 padding: const EdgeInsets.all(6),
@@ -1225,7 +1329,7 @@ class _HoverableInfoCardState extends State<_HoverableInfoCard>
                         style: TextStyle(
                           color: active
                               ? widget.accentColor
-                              : _HomeScreenState.textDark,
+                              : widget.textDark,
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
                           letterSpacing: -0.2,
@@ -1235,8 +1339,8 @@ class _HoverableInfoCardState extends State<_HoverableInfoCard>
                       const SizedBox(height: 4),
                       Text(
                         widget.subtitle,
-                        style: const TextStyle(
-                          color: _HomeScreenState.textMuted,
+                        style: TextStyle(
+                          color: widget.textMuted,
                           fontSize: 11,
                           height: 1.3,
                           fontWeight: FontWeight.w500,
@@ -1255,7 +1359,7 @@ class _HoverableInfoCardState extends State<_HoverableInfoCard>
 }
 
 // ═════════════════════════════════════════════════
-// WIDGETS ANIMÉS RÉUTILISABLES
+// ✨ FADE SLIDE IN
 // ═════════════════════════════════════════════════
 
 class _FadeSlideIn extends StatefulWidget {
@@ -1334,17 +1438,27 @@ class _FadeSlideInState extends State<_FadeSlideIn>
   }
 }
 
+// ═════════════════════════════════════════════════
+// 📱 BOTTOM MENU ITEM ANIMÉ
+// ═════════════════════════════════════════════════
+
 class _AnimatedMenuItem extends StatefulWidget {
   final bool selected;
   final String title;
   final VoidCallback onTap;
   final Widget Function(Color color, double size) svgBuilder;
+  final Color textDark;
+  final Color textMuted;
+  final Color primarySoft;
 
   const _AnimatedMenuItem({
     required this.selected,
     required this.title,
     required this.onTap,
     required this.svgBuilder,
+    required this.textDark,
+    required this.textMuted,
+    required this.primarySoft,
   });
 
   @override
@@ -1393,14 +1507,13 @@ class _AnimatedMenuItemState extends State<_AnimatedMenuItem>
         margin: const EdgeInsets.symmetric(horizontal: 3),
         decoration: BoxDecoration(
           color: widget.selected
-              ? _HomeScreenState.primarySoft
+              ? widget.primarySoft
               : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Stack(
           alignment: Alignment.center,
           children: [
-            // Pulse lumineux sur onglet actif
             if (widget.selected)
               Positioned.fill(
                 child: AnimatedBuilder(
@@ -1432,8 +1545,8 @@ class _AnimatedMenuItemState extends State<_AnimatedMenuItem>
                     curve: Curves.easeOut,
                     child: widget.svgBuilder(
                       widget.selected
-                          ? _HomeScreenState.primary
-                          : _HomeScreenState.textMuted,
+                          ? _HomeScreenState.primaryDark
+                          : widget.textMuted,
                       21,
                     ),
                   ),
@@ -1446,8 +1559,8 @@ class _AnimatedMenuItemState extends State<_AnimatedMenuItem>
                     fontWeight:
                         widget.selected ? FontWeight.bold : FontWeight.w500,
                     color: widget.selected
-                        ? _HomeScreenState.primary
-                        : _HomeScreenState.textMuted,
+                        ? _HomeScreenState.primaryDark
+                        : widget.textMuted,
                   ),
                   child: Text(
                     widget.title,
@@ -1465,13 +1578,19 @@ class _AnimatedMenuItemState extends State<_AnimatedMenuItem>
   }
 }
 
+// ═════════════════════════════════════════════════
+// 🔔 BOUTON CLOCHE ANIMÉ
+// ═════════════════════════════════════════════════
+
 class _AnimatedBellButton extends StatefulWidget {
   final VoidCallback onTap;
   final Widget Function(Color color, double size) svgBuilder;
+  final Color iconColor;
 
   const _AnimatedBellButton({
     required this.onTap,
     required this.svgBuilder,
+    required this.iconColor,
   });
 
   @override
@@ -1517,7 +1636,6 @@ class _AnimatedBellButtonState extends State<_AnimatedBellButton>
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Onde qui se propage au tap
           AnimatedBuilder(
             animation: _waveController,
             builder: (context, _) {
@@ -1542,7 +1660,6 @@ class _AnimatedBellButtonState extends State<_AnimatedBellButton>
             },
           ),
 
-          // Cloche avec wiggle
           AnimatedBuilder(
             animation: _shakeController,
             builder: (context, child) {
@@ -1552,11 +1669,10 @@ class _AnimatedBellButtonState extends State<_AnimatedBellButton>
             },
             child: Padding(
               padding: const EdgeInsets.all(8),
-              child: widget.svgBuilder(_HomeScreenState.textDark, 24),
+              child: widget.svgBuilder(widget.iconColor, 24),
             ),
           ),
 
-          // Badge pulse
           Positioned(
             right: 6,
             top: 5,

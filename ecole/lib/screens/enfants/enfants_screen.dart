@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:ecole_eden/core/theme/app_theme.dart';
 import '../../services/api_service.dart';
 
 class EnfantsScreen extends StatefulWidget {
@@ -14,19 +15,17 @@ class _EnfantsScreenState extends State<EnfantsScreen> {
   bool isLoading = true;
   String? erreur;
 
+  // ═════════════════════════════════════════════
+  // 🎨 COULEURS DE MARQUE — BLEU
+  // ═════════════════════════════════════════════
   static const Color primaryColor = Color(0xFF2563EB);
   static const Color primaryDark = Color(0xFF1D4ED8);
-  static const Color textDark = Color(0xFF111827);
-  static const Color textMuted = Color(0xFF6B7280);
-  static const Color backgroundColor = Color(0xFFF7F9FC);
-  static const Color border = Color(0xFFE5E7EB);
-  static const Color primarySoft = Color(0xFFEFF6FF);
 
-  /// Palette d'avatars (une couleur différente par enfant)
+  /// Palette d'avatars (bleu en premier)
   static const List<List<Color>> _avatarPalette = [
     [Color(0xFF2563EB), Color(0xFF1D4ED8)], // Bleu
     [Color(0xFF7C3AED), Color(0xFF5B21B6)], // Violet
-    [Color(0xFFEA580C), Color(0xFFC2410C)], // Orange
+    [Color(0xFFDC2626), Color(0xFFB91C1C)], // Rouge
     [Color(0xFF16A34A), Color(0xFF15803D)], // Vert
     [Color(0xFFDB2777), Color(0xFFBE185D)], // Rose
     [Color(0xFF0891B2), Color(0xFF0E7490)], // Cyan
@@ -65,7 +64,7 @@ class _EnfantsScreenState extends State<EnfantsScreen> {
   /// Helper : SVG teinté
   Widget _svg({
     required String asset,
-    Color color = textDark,
+    required Color color,
     double size = 22,
   }) {
     return SvgPicture.asset(
@@ -99,17 +98,30 @@ class _EnfantsScreenState extends State<EnfantsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // ═══════════════════════════════════════════
+    // 🎨 COULEURS DYNAMIQUES (light / dark)
+    // ═══════════════════════════════════════════
+    final textDark = AppTheme.textDark(context);
+    final textMuted = AppTheme.textMuted(context);
+    final background = Theme.of(context).scaffoldBackgroundColor;
+    final cardColor = AppTheme.cardColor(context);
+    final border = AppTheme.border(context);
+    final primarySoft = AppTheme.primarySoftColor(context);
+    final appBarColor =
+        Theme.of(context).appBarTheme.backgroundColor ?? cardColor;
+
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor: background,
 
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: appBarColor,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
         titleSpacing: 20,
         title: Row(
           children: [
+            // ── Logo dégradé bleu ──
             Container(
               width: 42,
               height: 42,
@@ -122,8 +134,8 @@ class _EnfantsScreenState extends State<EnfantsScreen> {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: primaryColor.withOpacity(0.25),
-                    blurRadius: 10,
+                    color: primaryColor.withOpacity(0.35),
+                    blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
                 ],
@@ -140,7 +152,7 @@ class _EnfantsScreenState extends State<EnfantsScreen> {
 
             const SizedBox(width: 12),
 
-            const Column(
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -153,7 +165,7 @@ class _EnfantsScreenState extends State<EnfantsScreen> {
                     letterSpacing: -0.3,
                   ),
                 ),
-                SizedBox(height: 2),
+                const SizedBox(height: 2),
                 Text(
                   'Suivez leur parcours scolaire',
                   style: TextStyle(
@@ -178,7 +190,7 @@ class _EnfantsScreenState extends State<EnfantsScreen> {
 
               const SizedBox(height: 28),
 
-              const Text(
+              Text(
                 'Liste de mes enfants',
                 style: TextStyle(
                   color: textDark,
@@ -190,7 +202,7 @@ class _EnfantsScreenState extends State<EnfantsScreen> {
 
               const SizedBox(height: 8),
 
-              const Text(
+              Text(
                 'Retrouvez ici les informations scolaires de vos enfants.',
                 style: TextStyle(
                   color: textMuted,
@@ -210,6 +222,9 @@ class _EnfantsScreenState extends State<EnfantsScreen> {
     );
   }
 
+  // ═════════════════════════════════════════════
+  // 🎨 Carte bienvenue (dégradé bleu)
+  // ═════════════════════════════════════════════
   Widget _buildWelcomeCard() {
     return Container(
       width: double.infinity,
@@ -223,7 +238,7 @@ class _EnfantsScreenState extends State<EnfantsScreen> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: primaryColor.withOpacity(0.25),
+            color: primaryColor.withOpacity(0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -235,10 +250,10 @@ class _EnfantsScreenState extends State<EnfantsScreen> {
             width: 58,
             height: 58,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.18),
+              color: Colors.white.withOpacity(0.22),
               shape: BoxShape.circle,
               border: Border.all(
-                color: Colors.white.withOpacity(0.25),
+                color: Colors.white.withOpacity(0.35),
                 width: 1.5,
               ),
             ),
@@ -286,7 +301,16 @@ class _EnfantsScreenState extends State<EnfantsScreen> {
     );
   }
 
+  // ═════════════════════════════════════════════
+  // 🎨 État vide
+  // ═════════════════════════════════════════════
   Widget _buildEmptyState() {
+    final textDark = AppTheme.textDark(context);
+    final textMuted = AppTheme.textMuted(context);
+    final cardColor = AppTheme.cardColor(context);
+    final border = AppTheme.border(context);
+    final primarySoft = AppTheme.primarySoftColor(context);
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(
@@ -294,12 +318,12 @@ class _EnfantsScreenState extends State<EnfantsScreen> {
         vertical: 35,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardColor,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: border),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withOpacity(0.08),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -319,11 +343,11 @@ class _EnfantsScreenState extends State<EnfantsScreen> {
               width: 68,
               height: 68,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: cardColor,
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: primaryColor.withOpacity(0.15),
+                    color: primaryColor.withOpacity(0.2),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -332,7 +356,7 @@ class _EnfantsScreenState extends State<EnfantsScreen> {
               padding: const EdgeInsets.all(18),
               child: _svg(
                 asset: 'assets/icons/users.svg',
-                color: primaryColor,
+                color: primaryDark,
                 size: 32,
               ),
             ),
@@ -340,7 +364,7 @@ class _EnfantsScreenState extends State<EnfantsScreen> {
 
           const SizedBox(height: 22),
 
-          const Text(
+          Text(
             'Aucun enfant affiché',
             textAlign: TextAlign.center,
             style: TextStyle(
@@ -353,7 +377,7 @@ class _EnfantsScreenState extends State<EnfantsScreen> {
 
           const SizedBox(height: 10),
 
-          const Text(
+          Text(
             'Les enfants associés à votre compte apparaîtront ici dès que l’administration aura enregistré leur dossier.',
             textAlign: TextAlign.center,
             style: TextStyle(
@@ -372,10 +396,10 @@ class _EnfantsScreenState extends State<EnfantsScreen> {
               vertical: 10,
             ),
             decoration: BoxDecoration(
-              color: const Color(0xFFF3F4F6),
+              color: primarySoft,
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: border.withOpacity(0.6),
+                color: primaryColor.withOpacity(0.3),
               ),
             ),
             child: Row(
@@ -383,17 +407,17 @@ class _EnfantsScreenState extends State<EnfantsScreen> {
               children: [
                 _svg(
                   asset: 'assets/icons/info.svg',
-                  color: textMuted,
+                  color: primaryDark,
                   size: 16,
                 ),
                 const SizedBox(width: 8),
-                const Flexible(
+                Flexible(
                   child: Text(
                     'Données à charger depuis l’API',
                     style: TextStyle(
-                      color: textMuted,
+                      color: primaryDark,
                       fontSize: 12,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -405,7 +429,15 @@ class _EnfantsScreenState extends State<EnfantsScreen> {
     );
   }
 
+  // ═════════════════════════════════════════════
+  // 📋 Liste des enfants
+  // ═════════════════════════════════════════════
   Widget _buildChildrenList(BuildContext context) {
+    final textDark = AppTheme.textDark(context);
+    final cardColor = AppTheme.cardColor(context);
+    final border = AppTheme.border(context);
+    final textMuted = AppTheme.textMuted(context);
+
     // ── Chargement ──
     if (isLoading) {
       return const Center(
@@ -419,25 +451,88 @@ class _EnfantsScreenState extends State<EnfantsScreen> {
     // ── Erreur ──
     if (erreur != null) {
       return Center(
-        child: Column(
-          children: [
-            Text(
-              erreur!,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.red),
-            ),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  isLoading = true;
-                  erreur = null;
-                });
-                chargerEnfants();
-              },
-              child: const Text('Réessayer'),
-            ),
-          ],
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: cardColor,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: border),
+          ),
+          child: Column(
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFFEF2F2),
+                  shape: BoxShape.circle,
+                ),
+                alignment: Alignment.center,
+                child: _svg(
+                  asset: 'assets/icons/cloud-off.svg',
+                  color: Colors.red.shade700,
+                  size: 34,
+                ),
+              ),
+              const SizedBox(height: 18),
+              Text(
+                erreur!,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: textDark,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 18),
+              // Bouton Réessayer bleu
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    isLoading = true;
+                    erreur = null;
+                  });
+                  chargerEnfants();
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 11,
+                  ),
+                  decoration: BoxDecoration(
+                    color: primaryColor,
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: [
+                      BoxShadow(
+                        color: primaryColor.withOpacity(0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _svg(
+                        asset: 'assets/icons/refresh.svg',
+                        color: Colors.white,
+                        size: 15,
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Réessayer',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -477,7 +572,9 @@ class _EnfantsScreenState extends State<EnfantsScreen> {
     );
   }
 
-  /// Card enfant (design épuré, sans bouton bulletins)
+  // ═════════════════════════════════════════════
+  // 👶 Carte enfant
+  // ═════════════════════════════════════════════
   Widget _buildChildCard({
     required BuildContext context,
     required String nomComplet,
@@ -486,8 +583,16 @@ class _EnfantsScreenState extends State<EnfantsScreen> {
     required List<Color> avatarColors,
     required String avatarAsset,
   }) {
+    final textDark = AppTheme.textDark(context);
+    final textMuted = AppTheme.textMuted(context);
+    final cardColor = AppTheme.cardColor(context);
+    final border = AppTheme.border(context);
+    final primarySoft = AppTheme.primarySoftColor(context);
+
     return _PressableCard(
       accentColor: avatarColors[0],
+      cardColor: cardColor,
+      borderColor: border,
       onTap: () {
         // Action silencieuse pour l'instant
       },
@@ -495,7 +600,7 @@ class _EnfantsScreenState extends State<EnfantsScreen> {
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            // ── Avatar (avec bordure blanche + ombre colorée) ──
+            // ── Avatar (avec bordure + ombre colorée) ──
             Container(
               width: 64,
               height: 64,
@@ -506,7 +611,7 @@ class _EnfantsScreenState extends State<EnfantsScreen> {
                   end: Alignment.bottomRight,
                 ),
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 3),
+                border: Border.all(color: cardColor, width: 3),
                 boxShadow: [
                   BoxShadow(
                     color: avatarColors[0].withOpacity(0.35),
@@ -536,7 +641,7 @@ class _EnfantsScreenState extends State<EnfantsScreen> {
                   // Nom
                   Text(
                     nomComplet.isEmpty ? 'Nom non renseigné' : nomComplet,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: textDark,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -548,7 +653,7 @@ class _EnfantsScreenState extends State<EnfantsScreen> {
 
                   const SizedBox(height: 8),
 
-                  // Badge classe
+                  // Badge classe (bleu)
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 9,
@@ -557,11 +662,14 @@ class _EnfantsScreenState extends State<EnfantsScreen> {
                     decoration: BoxDecoration(
                       color: primarySoft,
                       borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: primaryColor.withOpacity(0.3),
+                      ),
                     ),
                     child: Text(
                       classe,
                       style: const TextStyle(
-                        color: primaryColor,
+                        color: primaryDark,
                         fontSize: 11.5,
                         fontWeight: FontWeight.w600,
                       ),
@@ -582,7 +690,7 @@ class _EnfantsScreenState extends State<EnfantsScreen> {
                       Expanded(
                         child: Text(
                           matricule,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: textMuted,
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
@@ -599,7 +707,7 @@ class _EnfantsScreenState extends State<EnfantsScreen> {
 
             const SizedBox(width: 8),
 
-            // ── Chevron (suggère la navigation) ──
+            // ── Chevron ──
             _svg(
               asset: 'assets/icons/chevron_right.svg',
               color: textMuted,
@@ -613,17 +721,21 @@ class _EnfantsScreenState extends State<EnfantsScreen> {
 }
 
 // ═════════════════════════════════════════════════
-// 🎨 CARTE PRESSABLE (effet hover + press)
+// 🎨 CARTE PRESSABLE (hover + press)
 // ═════════════════════════════════════════════════
 
 class _PressableCard extends StatefulWidget {
   final Widget child;
   final Color accentColor;
+  final Color cardColor;
+  final Color borderColor;
   final VoidCallback onTap;
 
   const _PressableCard({
     required this.child,
     required this.accentColor,
+    required this.cardColor,
+    required this.borderColor,
     required this.onTap,
   });
 
@@ -658,19 +770,19 @@ class _PressableCardState extends State<_PressableCard> {
             margin: const EdgeInsets.only(bottom: 14),
             decoration: BoxDecoration(
               color: active
-                  ? Color.lerp(Colors.white, widget.accentColor, 0.03)
-                  : Colors.white,
+                  ? Color.lerp(widget.cardColor, widget.accentColor, 0.05)
+                  : widget.cardColor,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color: active
                     ? widget.accentColor.withOpacity(0.5)
-                    : _EnfantsScreenState.border,
+                    : widget.borderColor,
                 width: active ? 1.5 : 1.0,
               ),
               boxShadow: [
                 BoxShadow(
                   color: widget.accentColor
-                      .withOpacity(active ? 0.15 : 0.05),
+                      .withOpacity(active ? 0.2 : 0.08),
                   blurRadius: active ? 20 : 12,
                   offset: Offset(0, active ? 8 : 4),
                 ),

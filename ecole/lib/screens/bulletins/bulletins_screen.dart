@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_file_dialog/flutter_file_dialog.dart';
+import 'package:ecole_eden/core/theme/app_theme.dart';
 
 import '../../services/api_service.dart';
 import 'bulletin_pdf_screen.dart';
@@ -18,14 +19,11 @@ class _BulletinsScreenState extends State<BulletinsScreen> {
   String? _error;
   List<Map<String, dynamic>> _bulletins = [];
 
-  // Palette de couleurs de l'application.
+  // ═════════════════════════════════════════════
+  // 🎨 COULEURS DE MARQUE — BLEU
+  // ═════════════════════════════════════════════
   static const Color primary = Color(0xFF2563EB);
   static const Color primaryDark = Color(0xFF1D4ED8);
-  static const Color textDark = Color(0xFF111827);
-  static const Color textMuted = Color(0xFF6B7280);
-  static const Color background = Color(0xFFF7F9FC);
-  static const Color border = Color(0xFFE5E7EB);
-  static const Color primarySoft = Color(0xFFEFF6FF);
 
   @override
   void initState() {
@@ -190,7 +188,7 @@ class _BulletinsScreenState extends State<BulletinsScreen> {
 
   Widget _svg({
     required String asset,
-    Color color = textDark,
+    required Color color,
     double size = 22,
   }) {
     return SvgPicture.asset(
@@ -210,23 +208,33 @@ class _BulletinsScreenState extends State<BulletinsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final textDark = AppTheme.textDark(context);
+    final textMuted = AppTheme.textMuted(context);
+    final background = Theme.of(context).scaffoldBackgroundColor;
+    final cardColor = AppTheme.cardColor(context);
+    final appBarColor =
+        Theme.of(context).appBarTheme.backgroundColor ?? cardColor;
+
     return Scaffold(
       backgroundColor: background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: appBarColor,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
         titleSpacing: 20,
         title: Row(
           children: [
-            // 🌟 Logo avec glow subtil
+            // 🌟 Logo avec glow bleu
             _GlowingFileLogo(
-              svgBuilder: (color, size) =>
-                  _svg(asset: 'assets/icons/file-text.svg', color: color, size: size),
+              svgBuilder: (color, size) => _svg(
+                asset: 'assets/icons/file-text.svg',
+                color: color,
+                size: size,
+              ),
             ),
             const SizedBox(width: 12),
-            const Expanded(
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -240,7 +248,7 @@ class _BulletinsScreenState extends State<BulletinsScreen> {
                       letterSpacing: -0.3,
                     ),
                   ),
-                  SizedBox(height: 2),
+                  const SizedBox(height: 2),
                   Text(
                     'Consultez vos résultats scolaires',
                     style: TextStyle(
@@ -260,8 +268,11 @@ class _BulletinsScreenState extends State<BulletinsScreen> {
             child: _RefreshButton(
               isLoading: _isLoading,
               onTap: _loadBulletins,
-              svgBuilder: (color, size) =>
-                  _svg(asset: 'assets/icons/refresh.svg', color: color, size: size),
+              svgBuilder: (color, size) => _svg(
+                asset: 'assets/icons/refresh.svg',
+                color: color,
+                size: size,
+              ),
             ),
           ),
         ],
@@ -275,17 +286,21 @@ class _BulletinsScreenState extends State<BulletinsScreen> {
   // --------------------------------------------------
 
   Widget _buildBody() {
+    final textDark = AppTheme.textDark(context);
+    final textMuted = AppTheme.textMuted(context);
+    final cardColor = AppTheme.cardColor(context);
+    final primarySoft = AppTheme.primarySoftColor(context);
+
     // ── Chargement ──
     if (_isLoading) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Double cercle + SVG
             Container(
               width: 96,
               height: 96,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: primarySoft,
                 shape: BoxShape.circle,
               ),
@@ -294,11 +309,11 @@ class _BulletinsScreenState extends State<BulletinsScreen> {
                 width: 68,
                 height: 68,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: cardColor,
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: primary.withOpacity(0.15),
+                      color: primary.withOpacity(0.2),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -307,7 +322,7 @@ class _BulletinsScreenState extends State<BulletinsScreen> {
                 padding: const EdgeInsets.all(18),
                 child: _svg(
                   asset: 'assets/icons/file-text.svg',
-                  color: primary,
+                  color: primaryDark,
                   size: 32,
                 ),
               ),
@@ -322,7 +337,7 @@ class _BulletinsScreenState extends State<BulletinsScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'Chargement des bulletins...',
               style: TextStyle(
                 color: textMuted,
@@ -358,7 +373,7 @@ class _BulletinsScreenState extends State<BulletinsScreen> {
                 ),
               ),
               const SizedBox(height: 22),
-              const Text(
+              Text(
                 'Impossible de charger les bulletins',
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -372,7 +387,7 @@ class _BulletinsScreenState extends State<BulletinsScreen> {
               Text(
                 _error!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   color: textMuted,
                   fontSize: 13.5,
                   height: 1.5,
@@ -380,11 +395,13 @@ class _BulletinsScreenState extends State<BulletinsScreen> {
                 ),
               ),
               const SizedBox(height: 22),
-              // Bouton "Réessayer" stylé avec SVG
               _RetryButton(
                 onTap: _loadBulletins,
-                svgBuilder: (color, size) =>
-                    _svg(asset: 'assets/icons/refresh.svg', color: color, size: size),
+                svgBuilder: (color, size) => _svg(
+                  asset: 'assets/icons/refresh.svg',
+                  color: color,
+                  size: size,
+                ),
               ),
             ],
           ),
@@ -406,7 +423,7 @@ class _BulletinsScreenState extends State<BulletinsScreen> {
               child: Container(
                 width: 110,
                 height: 110,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   color: primarySoft,
                   shape: BoxShape.circle,
                 ),
@@ -415,11 +432,11 @@ class _BulletinsScreenState extends State<BulletinsScreen> {
                   width: 78,
                   height: 78,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: cardColor,
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: primary.withOpacity(0.15),
+                        color: primary.withOpacity(0.2),
                         blurRadius: 14,
                         offset: const Offset(0, 5),
                       ),
@@ -428,14 +445,14 @@ class _BulletinsScreenState extends State<BulletinsScreen> {
                   padding: const EdgeInsets.all(20),
                   child: _svg(
                     asset: 'assets/icons/file-text.svg',
-                    color: primary,
+                    color: primaryDark,
                     size: 38,
                   ),
                 ),
               ),
             ),
             const SizedBox(height: 26),
-            const Text(
+            Text(
               'Aucun bulletin disponible',
               textAlign: TextAlign.center,
               style: TextStyle(
@@ -446,7 +463,7 @@ class _BulletinsScreenState extends State<BulletinsScreen> {
               ),
             ),
             const SizedBox(height: 10),
-            const Text(
+            Text(
               'Les bulletins apparaîtront ici après leur publication '
               'par l’administration.',
               textAlign: TextAlign.center,
@@ -462,7 +479,7 @@ class _BulletinsScreenState extends State<BulletinsScreen> {
       );
     }
 
-    // ── Liste des bulletins (avec apparition en cascade) ──
+    // ── Liste des bulletins ──
     return RefreshIndicator(
       onRefresh: _loadBulletins,
       color: primary,
@@ -488,12 +505,20 @@ class _BulletinsScreenState extends State<BulletinsScreen> {
   Widget _buildBulletinCard(
     Map<String, dynamic> bulletin,
   ) {
+    final textDark = AppTheme.textDark(context);
+    final textMuted = AppTheme.textMuted(context);
+    final cardColor = AppTheme.cardColor(context);
+    final border = AppTheme.border(context);
+    final primarySoft = AppTheme.primarySoftColor(context);
+
     final studentName =
         bulletin['student_name']?.toString() ?? 'Élève';
     final term = bulletin['term']?.toString() ?? '';
     final schoolYear = bulletin['school_year']?.toString() ?? '';
 
     return _PressableBulletinCard(
+      cardColor: cardColor,
+      borderColor: border,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -514,7 +539,7 @@ class _BulletinsScreenState extends State<BulletinsScreen> {
                     borderRadius: BorderRadius.circular(14),
                     boxShadow: [
                       BoxShadow(
-                        color: primary.withOpacity(0.25),
+                        color: primary.withOpacity(0.35),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -538,7 +563,7 @@ class _BulletinsScreenState extends State<BulletinsScreen> {
                         studentName,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: textDark,
                           fontSize: 15.5,
                           fontWeight: FontWeight.bold,
@@ -560,11 +585,14 @@ class _BulletinsScreenState extends State<BulletinsScreen> {
                               decoration: BoxDecoration(
                                 color: primarySoft,
                                 borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
+                                  color: primary.withOpacity(0.3),
+                                ),
                               ),
                               child: Text(
                                 term,
                                 style: const TextStyle(
-                                  color: primary,
+                                  color: primaryDark,
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -573,7 +601,7 @@ class _BulletinsScreenState extends State<BulletinsScreen> {
                           if (schoolYear.isNotEmpty)
                             Text(
                               schoolYear,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: textMuted,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
@@ -600,12 +628,14 @@ class _BulletinsScreenState extends State<BulletinsScreen> {
                     label: 'Consulter',
                     filled: false,
                     svgBuilder: _svg,
+                    cardColor: cardColor,
+                    borderColor: border,
                   ),
                 ),
 
                 const SizedBox(width: 8),
 
-                // Bouton "Télécharger" (soft)
+                // Bouton "Télécharger" (soft bleu)
                 Expanded(
                   child: _ActionButton(
                     onTap: _isSaving ? null : () => _saveBulletin(bulletin),
@@ -614,6 +644,8 @@ class _BulletinsScreenState extends State<BulletinsScreen> {
                     filled: true,
                     isLoading: _isSaving,
                     svgBuilder: _svg,
+                    cardColor: cardColor,
+                    borderColor: border,
                   ),
                 ),
               ],
@@ -626,7 +658,7 @@ class _BulletinsScreenState extends State<BulletinsScreen> {
 }
 
 // ═════════════════════════════════════════════════
-// 🌟 LOGO AVEC GLOW
+// 🌟 LOGO AVEC GLOW BLEU
 // ═════════════════════════════════════════════════
 
 class _GlowingFileLogo extends StatefulWidget {
@@ -668,7 +700,7 @@ class _GlowingFileLogoState extends State<_GlowingFileLogo>
       child: AnimatedBuilder(
         animation: _controller,
         builder: (context, child) {
-          final glow = 0.15 + (_controller.value * 0.15);
+          final glow = 0.2 + (_controller.value * 0.2);
           return Container(
             width: 42,
             height: 42,
@@ -700,7 +732,7 @@ class _GlowingFileLogoState extends State<_GlowingFileLogo>
 }
 
 // ═════════════════════════════════════════════════
-// 🔄 BOUTON REFRESH (avec spinner si loading)
+// 🔄 BOUTON REFRESH (avec spinner bleu)
 // ═════════════════════════════════════════════════
 
 class _RefreshButton extends StatelessWidget {
@@ -716,6 +748,8 @@ class _RefreshButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textDark = AppTheme.textDark(context);
+
     return IconButton(
       onPressed: isLoading ? null : onTap,
       tooltip: 'Actualiser',
@@ -728,13 +762,13 @@ class _RefreshButton extends StatelessWidget {
                 color: _BulletinsScreenState.primary,
               ),
             )
-          : svgBuilder(_BulletinsScreenState.textDark, 22),
+          : svgBuilder(textDark, 22),
     );
   }
 }
 
 // ═════════════════════════════════════════════════
-// 🔄 BOUTON RÉESSAYER
+// 🔄 BOUTON RÉESSAYER BLEU
 // ═════════════════════════════════════════════════
 
 class _RetryButton extends StatefulWidget {
@@ -773,7 +807,7 @@ class _RetryButtonState extends State<_RetryButton> {
             borderRadius: BorderRadius.circular(10),
             boxShadow: [
               BoxShadow(
-                color: _BulletinsScreenState.primary.withOpacity(0.3),
+                color: _BulletinsScreenState.primary.withOpacity(0.35),
                 blurRadius: 12,
                 offset: const Offset(0, 5),
               ),
@@ -812,9 +846,11 @@ class _ActionButton extends StatefulWidget {
   final bool isLoading;
   final Widget Function({
     required String asset,
-    Color color,
+    required Color color,
     double size,
   }) svgBuilder;
+  final Color cardColor;
+  final Color borderColor;
 
   const _ActionButton({
     required this.onTap,
@@ -822,6 +858,8 @@ class _ActionButton extends StatefulWidget {
     required this.label,
     required this.filled,
     required this.svgBuilder,
+    required this.cardColor,
+    required this.borderColor,
     this.isLoading = false,
   });
 
@@ -835,18 +873,20 @@ class _ActionButtonState extends State<_ActionButton> {
   @override
   Widget build(BuildContext context) {
     final enabled = widget.onTap != null;
+    final primarySoft = AppTheme.primarySoftColor(context);
+    final textMuted = AppTheme.textMuted(context);
 
     final bgColor = widget.filled
-        ? _BulletinsScreenState.primarySoft
-        : Colors.white;
+        ? primarySoft
+        : widget.cardColor;
 
     final fgColor = widget.filled
-        ? _BulletinsScreenState.primary
-        : const Color(0xFF43617D);
+        ? _BulletinsScreenState.primaryDark
+        : textMuted;
 
     final borderColor = widget.filled
-        ? Colors.transparent
-        : const Color(0xFF9CA3AF);
+        ? _BulletinsScreenState.primary.withOpacity(0.3)
+        : widget.borderColor;
 
     return GestureDetector(
       onTapDown:
@@ -872,13 +912,13 @@ class _ActionButtonState extends State<_ActionButton> {
             ),
             border: Border.all(
               color: borderColor,
-              width: widget.filled ? 0 : 1,
+              width: 1,
             ),
             boxShadow: widget.filled
                 ? [
                     BoxShadow(
                       color: _BulletinsScreenState.primary
-                          .withOpacity(0.12),
+                          .withOpacity(0.15),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -927,13 +967,19 @@ class _ActionButtonState extends State<_ActionButton> {
 }
 
 // ═════════════════════════════════════════════════
-// 🎨 CARTE BULLETIN PRESSABLE (hover + press)
+// 🎨 CARTE BULLETIN PRESSABLE (hover bleu)
 // ═════════════════════════════════════════════════
 
 class _PressableBulletinCard extends StatefulWidget {
   final Widget child;
+  final Color cardColor;
+  final Color borderColor;
 
-  const _PressableBulletinCard({required this.child});
+  const _PressableBulletinCard({
+    required this.child,
+    required this.cardColor,
+    required this.borderColor,
+  });
 
   @override
   State<_PressableBulletinCard> createState() =>
@@ -957,18 +1003,18 @@ class _PressableBulletinCardState extends State<_PressableBulletinCard> {
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeOutCubic,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: widget.cardColor,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: _isHovered
-                  ? _BulletinsScreenState.primary.withOpacity(0.4)
-                  : _BulletinsScreenState.border,
+                  ? _BulletinsScreenState.primary.withOpacity(0.5)
+                  : widget.borderColor,
               width: _isHovered ? 1.5 : 1.0,
             ),
             boxShadow: [
               BoxShadow(
                 color: _BulletinsScreenState.primary
-                    .withOpacity(_isHovered ? 0.12 : 0.04),
+                    .withOpacity(_isHovered ? 0.15 : 0.06),
                 blurRadius: _isHovered ? 22 : 12,
                 offset: Offset(0, _isHovered ? 10 : 4),
               ),

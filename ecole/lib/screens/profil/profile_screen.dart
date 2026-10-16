@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../core/theme/app_theme.dart'; // ✅ import corrigé
+
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
-  static const Color primary = Color(0xFF2563EB);
-  static const Color primaryDark = Color(0xFF1D4ED8);
-  static const Color textDark = Color(0xFF111827);
-  static const Color textMuted = Color(0xFF6B7280);
-  static const Color background = Color(0xFFF7F9FC);
-  static const Color border = Color(0xFFE5E7EB);
-  static const Color primarySoft = Color(0xFFEFF6FF);
+  // ═════════════════════════════════════════════
+  // 🎨 COULEURS DE MARQUE (identiques Light/Dark)
+  // ═════════════════════════════════════════════
+  static const Color primary = AppTheme.primary;
+  static const Color primaryDark = AppTheme.primaryDark;
 
   /// Helper : SVG teinté
   Widget _svg({
     required String asset,
-    Color color = textDark,
+    required Color color,
     double size = 22,
   }) {
     return SvgPicture.asset(
@@ -29,29 +29,28 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
         titleSpacing: 20,
         title: Row(
           children: [
-            // Logo dégradé
+            // Logo dégradé bleu
             Container(
               width: 42,
               height: 42,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [primary, primaryDark],
+                  colors: [AppTheme.primary, AppTheme.primaryDark],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: primary.withOpacity(0.25),
+                    color: AppTheme.primary.withOpacity(0.3),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -69,24 +68,24 @@ class ProfileScreen extends StatelessWidget {
 
             const SizedBox(width: 12),
 
-            const Column(
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   'Mon profil',
                   style: TextStyle(
-                    color: textDark,
+                    color: AppTheme.textDark(context),
                     fontSize: 17,
                     fontWeight: FontWeight.bold,
                     letterSpacing: -0.3,
                   ),
                 ),
-                SizedBox(height: 2),
+                const SizedBox(height: 2),
                 Text(
                   'Gérez vos informations',
                   style: TextStyle(
-                    color: textMuted,
+                    color: AppTheme.textMuted(context),
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
                   ),
@@ -100,15 +99,16 @@ class ProfileScreen extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            _buildProfileHeader(),
+            _buildProfileHeader(context),
             const SizedBox(height: 28),
-            _buildSectionTitle('Informations personnelles'),
+            _buildSectionTitle(context, 'Informations personnelles'),
             const SizedBox(height: 12),
-            _buildInfoCard(),
+            _buildInfoCard(context),
             const SizedBox(height: 24),
-            _buildSectionTitle('Mon compte'),
+            _buildSectionTitle(context, 'Mon compte'),
             const SizedBox(height: 12),
             _buildMenuItem(
+              context,
               iconAsset: 'assets/icons/lock.svg',
               title: 'Changer le mot de passe',
               onTap: () {
@@ -123,6 +123,7 @@ class ProfileScreen extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             _buildMenuItem(
+              context,
               iconAsset: 'assets/icons/bell.svg',
               title: 'Notifications',
               onTap: () {
@@ -137,6 +138,7 @@ class ProfileScreen extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             _buildMenuItem(
+              context,
               iconAsset: 'assets/icons/help.svg',
               title: 'Aide et assistance',
               onTap: () {
@@ -146,11 +148,11 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 24),
             _buildLogoutButton(context),
             const SizedBox(height: 20),
-            const Center(
+            Center(
               child: Text(
                 'École Eden • Espace parents',
                 style: TextStyle(
-                  color: textMuted,
+                  color: AppTheme.textMuted(context),
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),
@@ -162,14 +164,14 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileHeader() {
+  Widget _buildProfileHeader(BuildContext context) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.cardColor(context),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: border),
+        border: Border.all(color: AppTheme.border(context)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.03),
@@ -180,21 +182,24 @@ class ProfileScreen extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Avatar dégradé avec initiales
+          // Avatar dégradé bleu avec initiales
           Container(
             width: 88,
             height: 88,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [primary, primaryDark],
+                colors: [AppTheme.primary, AppTheme.primaryDark],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 4),
+              border: Border.all(
+                color: AppTheme.cardColor(context),
+                width: 4,
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: primary.withOpacity(0.35),
+                  color: AppTheme.primary.withOpacity(0.4),
                   blurRadius: 16,
                   offset: const Offset(0, 6),
                 ),
@@ -212,26 +217,26 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'Nom du parent',
             style: TextStyle(
-              color: textDark,
+              color: AppTheme.textDark(context),
               fontSize: 20,
               fontWeight: FontWeight.bold,
               letterSpacing: -0.3,
             ),
           ),
           const SizedBox(height: 6),
-          const Text(
+          Text(
             'Compte parent',
             style: TextStyle(
-              color: textMuted,
+              color: AppTheme.textMuted(context),
               fontSize: 14,
               fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: 14),
-          // Badge "Espace parents" (inchangé)
+          // Badge "Espace parents" (vert conservé)
           Container(
             padding: const EdgeInsets.symmetric(
               horizontal: 12,
@@ -269,11 +274,11 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(BuildContext context, String title) {
     return Text(
       title,
-      style: const TextStyle(
-        color: textDark,
+      style: TextStyle(
+        color: AppTheme.textDark(context),
         fontSize: 16,
         fontWeight: FontWeight.bold,
         letterSpacing: -0.2,
@@ -281,13 +286,13 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoCard() {
+  Widget _buildInfoCard(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.cardColor(context),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: border),
+        border: Border.all(color: AppTheme.border(context)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.03),
@@ -296,20 +301,20 @@ class ProfileScreen extends StatelessWidget {
           ),
         ],
       ),
-      child: const Column(
+      child: Column(
         children: [
           _InfoRow(
             iconAsset: 'assets/icons/user.svg',
             label: 'Nom complet',
             value: 'À renseigner',
           ),
-          Divider(height: 24, color: border),
+          Divider(height: 24, color: AppTheme.border(context)),
           _InfoRow(
             iconAsset: 'assets/icons/email.svg',
             label: 'Adresse e-mail',
             value: 'À renseigner',
           ),
-          Divider(height: 24, color: border),
+          Divider(height: 24, color: AppTheme.border(context)),
           _InfoRow(
             iconAsset: 'assets/icons/phone.svg',
             label: 'Téléphone',
@@ -320,13 +325,14 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuItem({
+  Widget _buildMenuItem(
+    BuildContext context, {
     required String iconAsset,
     required String title,
     required VoidCallback onTap,
   }) {
     return Material(
-      color: Colors.white,
+      color: AppTheme.cardColor(context),
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
         onTap: onTap,
@@ -335,7 +341,7 @@ class ProfileScreen extends StatelessWidget {
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: border),
+            border: Border.all(color: AppTheme.border(context)),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.02),
@@ -351,13 +357,16 @@ class ProfileScreen extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: primarySoft,
+                  color: AppTheme.primarySoftColor(context),
                   borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: AppTheme.primary.withOpacity(0.15),
+                  ),
                 ),
                 padding: const EdgeInsets.all(10),
                 child: _svg(
                   asset: iconAsset,
-                  color: primary,
+                  color: AppTheme.primaryDark,
                   size: 20,
                 ),
               ),
@@ -365,8 +374,8 @@ class ProfileScreen extends StatelessWidget {
               Expanded(
                 child: Text(
                   title,
-                  style: const TextStyle(
-                    color: textDark,
+                  style: TextStyle(
+                    color: AppTheme.textDark(context),
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
@@ -374,7 +383,7 @@ class ProfileScreen extends StatelessWidget {
               ),
               _svg(
                 asset: 'assets/icons/chevron_right.svg',
-                color: textMuted,
+                color: AppTheme.textMuted(context),
                 size: 18,
               ),
             ],
@@ -402,7 +411,7 @@ class ProfileScreen extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 15),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppTheme.cardColor(context),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: Colors.red.shade200,
@@ -434,6 +443,10 @@ class ProfileScreen extends StatelessWidget {
   }
 }
 
+// ═════════════════════════════════════════════════
+// 📋 LIGNE D'INFORMATION
+// ═════════════════════════════════════════════════
+
 class _InfoRow extends StatelessWidget {
   final String iconAsset;
   final String label;
@@ -454,14 +467,17 @@ class _InfoRow extends StatelessWidget {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: ProfileScreen.primarySoft,
+            color: AppTheme.primarySoftColor(context),
             borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: AppTheme.primary.withOpacity(0.15),
+            ),
           ),
           padding: const EdgeInsets.all(10),
           child: SvgPicture.asset(
             iconAsset,
             colorFilter: const ColorFilter.mode(
-              ProfileScreen.primary,
+              AppTheme.primaryDark,
               BlendMode.srcIn,
             ),
           ),
@@ -473,8 +489,8 @@ class _InfoRow extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: const TextStyle(
-                  color: ProfileScreen.textMuted,
+                style: TextStyle(
+                  color: AppTheme.textMuted(context),
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),
@@ -482,8 +498,8 @@ class _InfoRow extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 value,
-                style: const TextStyle(
-                  color: ProfileScreen.textDark,
+                style: TextStyle(
+                  color: AppTheme.textDark(context),
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                 ),

@@ -1,10 +1,10 @@
-
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../services/api_service.dart';
+import '../../core/theme/app_theme.dart'; // ✅ import corrigé
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -14,13 +14,11 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  static const Color primary = Color(0xFF2563EB);
-  static const Color primaryDark = Color(0xFF1D4ED8);
-  static const Color textDark = Color(0xFF111827);
-  static const Color textMuted = Color(0xFF6B7280);
-  static const Color background = Color(0xFFF7F9FC);
-  static const Color border = Color(0xFFE5E7EB);
-  static const Color primarySoft = Color(0xFFEFF6FF);
+  // ═════════════════════════════════════════════
+  // 🎨 COULEURS DE MARQUE (identiques Light/Dark)
+  // ═════════════════════════════════════════════
+  static const Color primary = AppTheme.primary;
+  static const Color primaryDark = AppTheme.primaryDark;
 
   final TextEditingController _messageController =
       TextEditingController();
@@ -184,7 +182,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Widget _svg({
     required String asset,
-    Color color = textDark,
+    required Color color,
     double size = 22,
   }) {
     return SvgPicture.asset(
@@ -201,9 +199,8 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
@@ -216,14 +213,14 @@ class _ChatScreenState extends State<ChatScreen> {
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [primary, primaryDark],
+                  colors: [AppTheme.primary, AppTheme.primaryDark],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: primary.withOpacity(0.25),
+                    color: AppTheme.primary.withOpacity(0.3),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -235,24 +232,24 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
             ),
             const SizedBox(width: 12),
-            const Expanded(
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Messages',
                     style: TextStyle(
-                      color: textDark,
+                      color: AppTheme.textDark(context),
                       fontSize: 17,
                       fontWeight: FontWeight.bold,
                       letterSpacing: -0.3,
                     ),
                   ),
-                  SizedBox(height: 2),
+                  const SizedBox(height: 2),
                   Text(
-                    'Échangez avec l’administration',
+                    'Échangez avec l\u2019administration',
                     style: TextStyle(
-                      color: textMuted,
+                      color: AppTheme.textMuted(context),
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
                     ),
@@ -271,12 +268,12 @@ class _ChatScreenState extends State<ChatScreen> {
                       height: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2.2,
-                        color: primary,
+                        color: AppTheme.primary,
                       ),
                     )
                   : _svg(
                       asset: 'assets/icons/refresh.svg',
-                      color: primary,
+                      color: AppTheme.primary,
                       size: 22,
                     ),
             ),
@@ -301,14 +298,16 @@ class _ChatScreenState extends State<ChatScreen> {
       margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: primarySoft,
+        color: AppTheme.primarySoftColor(context),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: const Color(0xFFDBEAFE),
+          color: AppTheme.isDark(context)
+              ? AppTheme.primary.withOpacity(0.35)
+              : const Color(0xFFBFDBFE), // ← Bleu clair (light)
         ),
         boxShadow: [
           BoxShadow(
-            color: primary.withOpacity(0.06),
+            color: AppTheme.primary.withOpacity(0.06),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -320,11 +319,11 @@ class _ChatScreenState extends State<ChatScreen> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppTheme.cardColor(context),
               borderRadius: BorderRadius.circular(11),
               boxShadow: [
                 BoxShadow(
-                  color: primary.withOpacity(0.1),
+                  color: AppTheme.primary.withOpacity(0.1),
                   blurRadius: 8,
                   offset: const Offset(0, 3),
                 ),
@@ -333,30 +332,30 @@ class _ChatScreenState extends State<ChatScreen> {
             padding: const EdgeInsets.all(10),
             child: _svg(
               asset: 'assets/icons/lock.svg',
-              color: primary,
+              color: AppTheme.primaryDark,
               size: 20,
             ),
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Conversation privée',
                   style: TextStyle(
-                    color: textDark,
+                    color: AppTheme.textDark(context),
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
                     letterSpacing: -0.2,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
                   'Vos messages sont destinés à '
-                  'l’administration de l’école.',
+                  'l\u2019administration de l\u2019école.',
                   style: TextStyle(
-                    color: textMuted,
+                    color: AppTheme.textMuted(context),
                     fontSize: 12,
                     height: 1.4,
                     fontWeight: FontWeight.w500,
@@ -403,7 +402,7 @@ class _ChatScreenState extends State<ChatScreen> {
           TextButton(
             onPressed: () => _loadMessages(),
             style: TextButton.styleFrom(
-              foregroundColor: primary,
+              foregroundColor: AppTheme.primaryDark,
               padding: const EdgeInsets.symmetric(
                 horizontal: 10,
               ),
@@ -425,23 +424,23 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Widget _buildMessages() {
     if (_loading) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SizedBox(
+            const SizedBox(
               width: 32,
               height: 32,
               child: CircularProgressIndicator(
                 strokeWidth: 2.5,
-                color: primary,
+                color: AppTheme.primary,
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(
               'Chargement de la conversation...',
               style: TextStyle(
-                color: textMuted,
+                color: AppTheme.textMuted(context),
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
               ),
@@ -461,8 +460,8 @@ class _ChatScreenState extends State<ChatScreen> {
               Container(
                 width: 110,
                 height: 110,
-                decoration: const BoxDecoration(
-                  color: primarySoft,
+                decoration: BoxDecoration(
+                  color: AppTheme.primarySoftColor(context),
                   shape: BoxShape.circle,
                 ),
                 alignment: Alignment.center,
@@ -470,11 +469,11 @@ class _ChatScreenState extends State<ChatScreen> {
                   width: 78,
                   height: 78,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppTheme.cardColor(context),
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: primary.withOpacity(0.15),
+                        color: AppTheme.primary.withOpacity(0.18),
                         blurRadius: 14,
                         offset: const Offset(0, 5),
                       ),
@@ -483,29 +482,29 @@ class _ChatScreenState extends State<ChatScreen> {
                   padding: const EdgeInsets.all(20),
                   child: _svg(
                     asset: 'assets/icons/chat.svg',
-                    color: primary,
+                    color: AppTheme.primaryDark,
                     size: 38,
                   ),
                 ),
               ),
               const SizedBox(height: 24),
-              const Text(
+              Text(
                 'Aucun message pour le moment',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: textDark,
+                  color: AppTheme.textDark(context),
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   letterSpacing: -0.3,
                 ),
               ),
               const SizedBox(height: 10),
-              const Text(
-                'Écrivez à l’administration pour démarrer '
+              Text(
+                'Écrivez à l\u2019administration pour démarrer '
                 'votre conversation.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: textMuted,
+                  color: AppTheme.textMuted(context),
                   fontSize: 14,
                   height: 1.6,
                   fontWeight: FontWeight.w500,
@@ -518,7 +517,7 @@ class _ChatScreenState extends State<ChatScreen> {
     }
 
     return RefreshIndicator(
-      color: primary,
+      color: AppTheme.primary,
       onRefresh: () => _loadMessages(),
       child: ListView.builder(
         controller: _scrollController,
@@ -586,20 +585,21 @@ class _ChatScreenState extends State<ChatScreen> {
             : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
+          // ── Avatar Admin (gauche) ──
           if (!isParent)
             Container(
               width: 32,
               height: 32,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [primary, primaryDark],
+                  colors: [AppTheme.primary, AppTheme.primaryDark],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: primary.withOpacity(0.25),
+                    color: AppTheme.primary.withOpacity(0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
                   ),
@@ -630,7 +630,9 @@ class _ChatScreenState extends State<ChatScreen> {
                 vertical: 11,
               ),
               decoration: BoxDecoration(
-                color: isParent ? primary : Colors.white,
+                color: isParent
+                    ? AppTheme.primary
+                    : AppTheme.cardColor(context),
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(16),
                   topRight: const Radius.circular(16),
@@ -641,11 +643,11 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
                 border: isParent
                     ? null
-                    : Border.all(color: border),
+                    : Border.all(color: AppTheme.border(context)),
                 boxShadow: [
                   BoxShadow(
                     color: isParent
-                        ? primary.withOpacity(0.2)
+                        ? AppTheme.primary.withOpacity(0.25)
                         : Colors.black.withOpacity(0.04),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
@@ -659,8 +661,9 @@ class _ChatScreenState extends State<ChatScreen> {
                   Text(
                     isParent ? 'Vous' : 'Administration',
                     style: TextStyle(
-                      color:
-                          isParent ? Colors.white70 : primary,
+                      color: isParent
+                          ? Colors.white70
+                          : AppTheme.primaryDark,
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 0.2,
@@ -670,7 +673,9 @@ class _ChatScreenState extends State<ChatScreen> {
                   Text(
                     body,
                     style: TextStyle(
-                      color: isParent ? Colors.white : textDark,
+                      color: isParent
+                          ? Colors.white
+                          : AppTheme.textDark(context),
                       fontSize: 14,
                       height: 1.45,
                       fontWeight: FontWeight.w500,
@@ -681,8 +686,9 @@ class _ChatScreenState extends State<ChatScreen> {
                     Text(
                       dateText,
                       style: TextStyle(
-                        color:
-                            isParent ? Colors.white60 : textMuted,
+                        color: isParent
+                            ? Colors.white60
+                            : AppTheme.textMuted(context),
                         fontSize: 10,
                         fontWeight: FontWeight.w500,
                       ),
@@ -695,6 +701,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
           if (isParent) const SizedBox(width: 8),
 
+          // ── Avatar Parent (droite, gris) ──
           if (isParent)
             Container(
               width: 32,
@@ -731,9 +738,9 @@ class _ChatScreenState extends State<ChatScreen> {
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: const Border(
-          top: BorderSide(color: border),
+        color: AppTheme.cardColor(context),
+        border: Border(
+          top: BorderSide(color: AppTheme.border(context)),
         ),
         boxShadow: [
           BoxShadow(
@@ -754,20 +761,20 @@ class _ChatScreenState extends State<ChatScreen> {
               textCapitalization: TextCapitalization.sentences,
               enabled: !_sending,
               onSubmitted: (_) => _sendMessage(),
-              style: const TextStyle(
-                color: textDark,
+              style: TextStyle(
+                color: AppTheme.textDark(context),
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
               decoration: InputDecoration(
                 hintText: 'Écrire un message...',
-                hintStyle: const TextStyle(
-                  color: textMuted,
+                hintStyle: TextStyle(
+                  color: AppTheme.textMuted(context),
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),
                 filled: true,
-                fillColor: background,
+                fillColor: Theme.of(context).scaffoldBackgroundColor,
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 12,
@@ -778,12 +785,13 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: border),
+                  borderSide:
+                      BorderSide(color: AppTheme.border(context)),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
                   borderSide: const BorderSide(
-                    color: primary,
+                    color: AppTheme.primary,
                     width: 1.5,
                   ),
                 ),
@@ -797,14 +805,14 @@ class _ChatScreenState extends State<ChatScreen> {
             child: DecoratedBox(
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [primary, primaryDark],
+                  colors: [AppTheme.primary, AppTheme.primaryDark],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(14),
                 boxShadow: [
                   BoxShadow(
-                    color: primary.withOpacity(0.3),
+                    color: AppTheme.primary.withOpacity(0.35),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -861,7 +869,7 @@ class _ChatScreenState extends State<ChatScreen> {
     final now = DateTime.now();
     final diff = now.difference(local);
 
-    if (diff.inMinutes < 1) return 'À l’instant';
+    if (diff.inMinutes < 1) return 'À l\u2019instant';
 
     if (diff.inMinutes < 60) {
       return 'Il y a ${diff.inMinutes} min';
